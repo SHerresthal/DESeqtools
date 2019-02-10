@@ -1,73 +1,37 @@
 #  DESeqtools
 
-A package for analysis of RNASeq-data using the package DESeq2. (https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
-
+A package for analysis of RNASeq-data based on the package DESeq2. (https://bioconductor.org/packages/release/bioc/html/DESeq2.html) 
 
 ## Package installation
 
 ```r
 install.packages("devtools")
 library(devtools)
-devtools::install_github("sherresthal/DESeqtools")
+devtools::install_github("SHerresthal/RNA-DESeq2")
 ```
 
-## Vignette
-In the vignette, you can find a script that can be used as a template for standard bulk RNA-seq analysis. The script covers:
+## Example Analysis
+
+This tutorial contains an examples which can be used as a template for standard bulk RNA-seq analysis using a dataset of human MDSC-like cells (published here: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE92852). 
+See https://sherresthal.github.io for the example workflow. 
 
 1.  Installation of the DESeqtools-package
 
 2.  Project Information
 
-	•   Here, you are supposed to write down all necessary information about the project you are working on! We think this is very important for collaboration partners or other researches working with the data (after your time) to know the background of the project and the preprocessing steps performed!
-
 3.  Obligatory Data Structure
-
-	•   The data to be analyzed has to be in a certain structure, which is pretty much the structure it has coming out of out the preprocessing pipeline. Additionally, you need to download annotation files from a public sciebo folder.
 
 4. Data Import
 
-	•   Gene and Sample Annotation files
-	•   Fastq and Kallisto Quality Check
-	•   Kallisto Import using TXimport
-
 5. Build DESeq Data Set
-
-	•   Pre-Filtering
-	•   Statistical Calculations
-	•   Produce normalized Count table
-	•   Produce variance-stabilized count table (rlog)
 
 6. Exploratory Data Analysis
 
-	•   Gene Types
-	•   Highest Expressed Genes
-	•   Heatmaps of all and variable Genes
-	•   Correlation and Distance Plots
-	•   PCA
-	•   Single Gene Expression Box Plot
-	•   Heatmap of selected Gene Sets without enrichment
 
 7. Batch Effect Removal (treat with caution!)
 
-	•   In case you observed an obvious batch effect in the data during the exploratory data analysis, this part of the script allows you to estimate the influence of both known and hidden batch effects in a PCA. Batch variables can later be included in the DESeq2 design.
 
 8. Differential expression analysis
-
-	•   Automated DE analysis of specified comparisons
-	•   Produces a big list of all the output of the differential expression analysis!
-	•   Overall visualization of DE results
-		i.  Heatmap of the union of all DE genes
-		ii. Venn diagrams
-		iii. Ratio-Ratio Plots
-		iv. Ranked FC plots
-		v. GSEA across comparisons (incl. GO & KEGG)
-	•   Likelihood Ratio Test
-	•   Analysis of specific comparisons
-		i. MA plots
-		ii. P value distribution
-		iii. Heatmap of DE genes
-		iv. Volcano Plot
-		v. GSEA (Incl. GO, KEGG, Hallmark, cannonicalPathways, Motifs, ImmunoSignatures)
 
 9. Export of the results
 

@@ -1,0 +1,12 @@
+1553,/input/1553_XXXX_L001_R1_001.fastq.gz
+1554,/input/1554_XXXX_L001_R1_001.fastq.gz
+1555,/input/1555_XXXX_L001_R1_001.fastq.gz
+1556,/input/1556_XXXX_L001_R1_001.fastq.gz
+1557,/input/1557_XXXX_L001_R1_001.fastq.gz
+1558,/input/1558_XXXX_L001_R1_001.fastq.gz
+1559,/input/1559_XXXX_L001_R1_001.fastq.gz
+1560,/input/1560_XXXX_L001_R1_001.fastq.gz
+1561,/input/1561_XXXX_L001_R1_001.fastq.gz
+1562,/input/1562_XXXX_L001_R1_001.fastq.gz
+1563,/input/1563_XXXX_L001_R1_001.fastq.gz
+1564,/input/1564_XXXX_L001_R1_001.fastq.gz

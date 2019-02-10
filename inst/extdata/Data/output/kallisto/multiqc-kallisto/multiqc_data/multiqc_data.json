@@ -1,0 +1,347 @@
+{
+    "report_data_sources": {
+        "Kallisto": {
+            "all_sections": {
+                "1553_XXXX_L001_R1_001": "/output/kallisto/1553/kallisto.log",
+                "1554_XXXX_L001_R1_001": "/output/kallisto/1554/kallisto.log",
+                "1555_XXXX_L001_R1_001": "/output/kallisto/1555/kallisto.log",
+                "1556_XXXX_L001_R1_001": "/output/kallisto/1556/kallisto.log",
+                "1557_XXXX_L001_R1_001": "/output/kallisto/1557/kallisto.log",
+                "1558_XXXX_L001_R1_001": "/output/kallisto/1558/kallisto.log",
+                "1559_XXXX_L001_R1_001": "/output/kallisto/1559/kallisto.log",
+                "1560_XXXX_L001_R1_001": "/output/kallisto/1560/kallisto.log",
+                "1561_XXXX_L001_R1_001": "/output/kallisto/1561/kallisto.log",
+                "1562_XXXX_L001_R1_001": "/output/kallisto/1562/kallisto.log",
+                "1563_XXXX_L001_R1_001": "/output/kallisto/1563/kallisto.log",
+                "1564_XXXX_L001_R1_001": "/output/kallisto/1564/kallisto.log"
+            }
+        }
+    },
+    "report_general_stats_data": [
+        {
+            "1553_XXXX_L001_R1_001": {
+                "total_reads": 6891641.0,
+                "pseudoaligned_reads": 5172369.0,
+                "not_pseudoaligned_reads": 1719272.0,
+                "percent_aligned": 75.05279221596133
+            },
+            "1554_XXXX_L001_R1_001": {
+                "total_reads": 7570089.0,
+                "pseudoaligned_reads": 6071037.0,
+                "not_pseudoaligned_reads": 1499052.0,
+                "percent_aligned": 80.19769648679164
+            },
+            "1555_XXXX_L001_R1_001": {
+                "total_reads": 8204246.0,
+                "pseudoaligned_reads": 7416114.0,
+                "not_pseudoaligned_reads": 788132.0,
+                "percent_aligned": 90.39360838278131
+            },
+            "1556_XXXX_L001_R1_001": {
+                "total_reads": 9093218.0,
+                "pseudoaligned_reads": 7884858.0,
+                "not_pseudoaligned_reads": 1208360.0,
+                "percent_aligned": 86.71141503480946
+            },
+            "1557_XXXX_L001_R1_001": {
+                "total_reads": 12346774.0,
+                "pseudoaligned_reads": 9585170.0,
+                "not_pseudoaligned_reads": 2761604.0,
+                "percent_aligned": 77.63299141945905
+            },
+            "1558_XXXX_L001_R1_001": {
+                "total_reads": 17708233.0,
+                "pseudoaligned_reads": 14504799.0,
+                "not_pseudoaligned_reads": 3203434.0,
+                "percent_aligned": 81.90991726842537
+            },
+            "1559_XXXX_L001_R1_001": {
+                "total_reads": 8790956.0,
+                "pseudoaligned_reads": 7560039.0,
+                "not_pseudoaligned_reads": 1230917.0,
+                "percent_aligned": 85.99791649508882
+            },
+            "1560_XXXX_L001_R1_001": {
+                "total_reads": 28888530.0,
+                "pseudoaligned_reads": 25232559.0,
+                "not_pseudoaligned_reads": 3655971.0,
+                "percent_aligned": 87.34455854970814
+            },
+            "1561_XXXX_L001_R1_001": {
+                "total_reads": 10120358.0,
+                "pseudoaligned_reads": 9116062.0,
+                "not_pseudoaligned_reads": 1004296.0,
+                "percent_aligned": 90.07647753172367
+            },
+            "1562_XXXX_L001_R1_001": {
+                "total_reads": 11445558.0,
+                "pseudoaligned_reads": 10277792.0,
+                "not_pseudoaligned_reads": 1167766.0,
+                "percent_aligned": 89.7972121586383
+            },
+            "1563_XXXX_L001_R1_001": {
+                "total_reads": 12027122.0,
+                "pseudoaligned_reads": 10986108.0,
+                "not_pseudoaligned_reads": 1041014.0,
+                "percent_aligned": 91.34444632722608
+            },
+            "1564_XXXX_L001_R1_001": {
+                "total_reads": 17617401.0,
+                "pseudoaligned_reads": 16044262.0,
+                "not_pseudoaligned_reads": 1573139.0,
+                "percent_aligned": 91.07053872475286
+            }
+        }
+    ],
+    "report_general_stats_headers": [
+        {
+            "percent_aligned": {
+                "title": "% Aligned",
+                "description": "% processed reads that were pseudoaligned",
+                "max": 100,
+                "min": 0,
+                "suffix": "%",
+                "scale": "YlGn",
+                "namespace": "Kallisto",
+                "rid": "mqc-generalstats-percent_aligned",
+                "format": "{:,.1f}",
+                "colour": "55,126,184",
+                "hidden": null,
+                "ceiling": null,
+                "floor": null,
+                "minRange": null,
+                "shared_key": null,
+                "modify": null,
+                "placement": 1000.0,
+                "dmax": 100.0,
+                "dmin": 0.0
+            },
+            "pseudoaligned_reads": {
+                "title": "M Aligned",
+                "description": "Pseudoaligned reads (millions)",
+                "min": 0,
+                "scale": "PuRd",
+                "modify": 1e-06,
+                "shared_key": "read_count",
+                "namespace": "Kallisto",
+                "rid": "mqc-generalstats-pseudoaligned_reads",
+                "format": "{:,.1f}",
+                "colour": "55,126,184",
+                "hidden": null,
+                "max": null,
+                "ceiling": null,
+                "floor": null,
+                "minRange": null,
+                "placement": 1000.0,
+                "dmax": 25.232559,
+                "dmin": 0.0
+            }
+        }
+    ],
+    "report_multiqc_command": "/usr/local/bin/multiqc -f -o /output/multiqc-kallisto --file-list /output/tmp/logfilelist",
+    "report_plot_data": {
+        "kallisto_alignment": {
+            "plot_type": "bar_graph",
+            "samples": [
+                [
+                    "1553_XXXX_L001_R1_001",
+                    "1554_XXXX_L001_R1_001",
+                    "1555_XXXX_L001_R1_001",
+                    "1556_XXXX_L001_R1_001",
+                    "1557_XXXX_L001_R1_001",
+                    "1558_XXXX_L001_R1_001",
+                    "1559_XXXX_L001_R1_001",
+                    "1560_XXXX_L001_R1_001",
+                    "1561_XXXX_L001_R1_001",
+                    "1562_XXXX_L001_R1_001",
+                    "1563_XXXX_L001_R1_001",
+                    "1564_XXXX_L001_R1_001"
+                ]
+            ],
+            "datasets": [
+                [
+                    {
+                        "name": "Pseudoaligned",
+                        "data": [
+                            5172369.0,
+                            6071037.0,
+                            7416114.0,
+                            7884858.0,
+                            9585170.0,
+                            14504799.0,
+                            7560039.0,
+                            25232559.0,
+                            9116062.0,
+                            10277792.0,
+                            10986108.0,
+                            16044262.0
+                        ],
+                        "color": "#437bb1"
+                    },
+                    {
+                        "name": "Not aligned",
+                        "data": [
+                            1719272.0,
+                            1499052.0,
+                            788132.0,
+                            1208360.0,
+                            2761604.0,
+                            3203434.0,
+                            1230917.0,
+                            3655971.0,
+                            1004296.0,
+                            1167766.0,
+                            1041014.0,
+                            1573139.0
+                        ],
+                        "color": "#b1084c"
+                    }
+                ]
+            ],
+            "config": {
+                "id": "kallisto_alignment",
+                "title": "Kallisto: Alignment Scores",
+                "ylab": "# Reads",
+                "cpswitch_counts_label": "Number of Reads"
+            }
+        }
+    },
+    "report_saved_raw_data": {
+        "multiqc_kallisto": {
+            "1553_XXXX_L001_R1_001": {
+                "total_reads": 6891641.0,
+                "pseudoaligned_reads": 5172369.0,
+                "not_pseudoaligned_reads": 1719272.0,
+                "percent_aligned": 75.05279221596133
+            },
+            "1554_XXXX_L001_R1_001": {
+                "total_reads": 7570089.0,
+                "pseudoaligned_reads": 6071037.0,
+                "not_pseudoaligned_reads": 1499052.0,
+                "percent_aligned": 80.19769648679164
+            },
+            "1555_XXXX_L001_R1_001": {
+                "total_reads": 8204246.0,
+                "pseudoaligned_reads": 7416114.0,
+                "not_pseudoaligned_reads": 788132.0,
+                "percent_aligned": 90.39360838278131
+            },
+            "1556_XXXX_L001_R1_001": {
+                "total_reads": 9093218.0,
+                "pseudoaligned_reads": 7884858.0,
+                "not_pseudoaligned_reads": 1208360.0,
+                "percent_aligned": 86.71141503480946
+            },
+            "1557_XXXX_L001_R1_001": {
+                "total_reads": 12346774.0,
+                "pseudoaligned_reads": 9585170.0,
+                "not_pseudoaligned_reads": 2761604.0,
+                "percent_aligned": 77.63299141945905
+            },
+            "1558_XXXX_L001_R1_001": {
+                "total_reads": 17708233.0,
+                "pseudoaligned_reads": 14504799.0,
+                "not_pseudoaligned_reads": 3203434.0,
+                "percent_aligned": 81.90991726842537
+            },
+            "1559_XXXX_L001_R1_001": {
+                "total_reads": 8790956.0,
+                "pseudoaligned_reads": 7560039.0,
+                "not_pseudoaligned_reads": 1230917.0,
+                "percent_aligned": 85.99791649508882
+            },
+            "1560_XXXX_L001_R1_001": {
+                "total_reads": 28888530.0,
+                "pseudoaligned_reads": 25232559.0,
+                "not_pseudoaligned_reads": 3655971.0,
+                "percent_aligned": 87.34455854970814
+            },
+            "1561_XXXX_L001_R1_001": {
+                "total_reads": 10120358.0,
+                "pseudoaligned_reads": 9116062.0,
+                "not_pseudoaligned_reads": 1004296.0,
+                "percent_aligned": 90.07647753172367
+            },
+            "1562_XXXX_L001_R1_001": {
+                "total_reads": 11445558.0,
+                "pseudoaligned_reads": 10277792.0,
+                "not_pseudoaligned_reads": 1167766.0,
+                "percent_aligned": 89.7972121586383
+            },
+            "1563_XXXX_L001_R1_001": {
+                "total_reads": 12027122.0,
+                "pseudoaligned_reads": 10986108.0,
+                "not_pseudoaligned_reads": 1041014.0,
+                "percent_aligned": 91.34444632722608
+            },
+            "1564_XXXX_L001_R1_001": {
+                "total_reads": 17617401.0,
+                "pseudoaligned_reads": 16044262.0,
+                "not_pseudoaligned_reads": 1573139.0,
+                "percent_aligned": 91.07053872475286
+            }
+        },
+        "multiqc_general_stats": {
+            "1553_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 75.05279221596133,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 5172369.0
+            },
+            "1554_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 80.19769648679164,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 6071037.0
+            },
+            "1555_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 90.39360838278131,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 7416114.0
+            },
+            "1556_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 86.71141503480946,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 7884858.0
+            },
+            "1557_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 77.63299141945905,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 9585170.0
+            },
+            "1558_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 81.90991726842537,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 14504799.0
+            },
+            "1559_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 85.99791649508882,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 7560039.0
+            },
+            "1560_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 87.34455854970814,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 25232559.0
+            },
+            "1561_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 90.07647753172367,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 9116062.0
+            },
+            "1562_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 89.7972121586383,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 10277792.0
+            },
+            "1563_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 91.34444632722608,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 10986108.0
+            },
+            "1564_XXXX_L001_R1_001": {
+                "Kallisto_mqc-generalstats-percent_aligned": 91.07053872475286,
+                "Kallisto_mqc-generalstats-pseudoaligned_reads": 16044262.0
+            }
+        }
+    },
+    "config_analysis_dir_abs": [],
+    "config_analysis_dir": [],
+    "config_creation_date": "2019-02-08, 12:02",
+    "config_git_hash": null,
+    "config_intro_text": null,
+    "config_report_comment": null,
+    "config_report_header_info": null,
+    "config_script_path": "/usr/local/lib/python3.6/dist-packages/multiqc/utils",
+    "config_short_version": "1.5",
+    "config_subtitle": null,
+    "config_title": null,
+    "config_version": "1.5"
+}

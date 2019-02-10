@@ -1,9 +1,20 @@
-#  RNA-DESeq2
-Template for DESeq2 Analysis of RNA-seq data
+#  DESeqtools
 
-The aim was to write a script that can be used as a template for standard bulk RNA-seq analysis. The script covers:
+A package for analysis of RNASeq-data using the package DESeq2. (https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
 
-1.  Installation of necessary packages
+
+## Package installation
+
+```r
+install.packages("devtools")
+library(devtools)
+devtools::install_github("sherresthal/DESeqtools")
+```
+
+## Vignette
+In the vignette, you can find a script that can be used as a template for standard bulk RNA-seq analysis. The script covers:
+
+1.  Installation of the DESeqtools-package
 
 2.  Project Information
 
@@ -14,20 +25,20 @@ The aim was to write a script that can be used as a template for standard bulk R
 	•   The data to be analyzed has to be in a certain structure, which is pretty much the structure it has coming out of out the preprocessing pipeline. Additionally, you need to download annotation files from a public sciebo folder.
 
 4. Data Import
-	
+
 	•   Gene and Sample Annotation files
 	•   Fastq and Kallisto Quality Check
 	•   Kallisto Import using TXimport
 
 5. Build DESeq Data Set
-	
+
 	•   Pre-Filtering
 	•   Statistical Calculations
 	•   Produce normalized Count table
 	•   Produce variance-stabilized count table (rlog)
 
 6. Exploratory Data Analysis
-	
+
 	•   Gene Types
 	•   Highest Expressed Genes
 	•   Heatmaps of all and variable Genes
@@ -37,7 +48,7 @@ The aim was to write a script that can be used as a template for standard bulk R
 	•   Heatmap of selected Gene Sets without enrichment
 
 7. Batch Effect Removal (treat with caution!)
-	
+
 	•   In case you observed an obvious batch effect in the data during the exploratory data analysis, this part of the script allows you to estimate the influence of both known and hidden batch effects in a PCA. Batch variables can later be included in the DESeq2 design.
 
 8. Differential expression analysis
@@ -61,4 +72,3 @@ The aim was to write a script that can be used as a template for standard bulk R
 9. Export of the results
 
 10. Save image and session info
-	 

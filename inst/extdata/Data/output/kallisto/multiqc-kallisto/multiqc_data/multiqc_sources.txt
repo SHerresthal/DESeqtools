@@ -1,0 +1,13 @@
+Module	Section	Sample Name	Source
+Kallisto	all_sections	1553_XXXX_L001_R1_001	/output/kallisto/1553/kallisto.log
+Kallisto	all_sections	1554_XXXX_L001_R1_001	/output/kallisto/1554/kallisto.log
+Kallisto	all_sections	1555_XXXX_L001_R1_001	/output/kallisto/1555/kallisto.log
+Kallisto	all_sections	1556_XXXX_L001_R1_001	/output/kallisto/1556/kallisto.log
+Kallisto	all_sections	1557_XXXX_L001_R1_001	/output/kallisto/1557/kallisto.log
+Kallisto	all_sections	1558_XXXX_L001_R1_001	/output/kallisto/1558/kallisto.log
+Kallisto	all_sections	1559_XXXX_L001_R1_001	/output/kallisto/1559/kallisto.log
+Kallisto	all_sections	1560_XXXX_L001_R1_001	/output/kallisto/1560/kallisto.log
+Kallisto	all_sections	1561_XXXX_L001_R1_001	/output/kallisto/1561/kallisto.log
+Kallisto	all_sections	1562_XXXX_L001_R1_001	/output/kallisto/1562/kallisto.log
+Kallisto	all_sections	1563_XXXX_L001_R1_001	/output/kallisto/1563/kallisto.log
+Kallisto	all_sections	1564_XXXX_L001_R1_001	/output/kallisto/1564/kallisto.log

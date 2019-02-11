@@ -13,9 +13,9 @@ output:
 
 This is a general template on how you can analyze your RNA-Seq data using the DESeq2-package and the DESeqtools-package, which provides additional plots and some convenient wrappers. 
 
-The aim was to write a script that can be used as a template for standard bulk RNA-seq analysis. For this example analysis, the a RNASeq dataset of human isolated monoctyes, which were  differentiated to monocyte-derived dendritic cells (moDC) in presence or absence of interleukin-10 (IL-10). Additional cell maturation by application of LPS leads to a total number of 4 conditions with 3 samples each.The raw data is accessible under https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE92852. 
+The aim was to write a script that can be used as a template for standard bulk RNA-seq analysis. For this example analysis, a RNASeq dataset of human isolated monoctyes is used, which were  differentiated to monocyte-derived dendritic cells (moDC) in presence or absence of interleukin-10 (IL-10). In addition, cell maturation by application of LPS leads to a total number of 4 conditions with 3 samples each. The raw data of the 12 samples is accessible under https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE92852. 
 
-The data has been preprocessed using kallisto. 
+The data has been preprocessed using [kallisto](https://pachterlab.github.io/kallisto/about). 
 
 
 This example analysis script covers:
@@ -81,7 +81,7 @@ Some explanations in this script are borrowed from the great vignette of the DES
 
 # Installing and loading the DESeqtools package
 
-First, you need to make sure that you have the devtools package installed. Then, you can install the DESeqtools package from GIthub, which will automatically install all package dependencies and annotation files. 
+First, you need to make sure that you have the devtools package installed. Then, you can install the DESeqtools package from Github, which will automatically install all package dependencies and annotation files. 
 
 ```{r, eval = F}
 install.packages("devtools")
@@ -89,6 +89,7 @@ library("devtools")
 install_github("SHerresthal/RNA-DESeq2", ref = "package")
 ```
 
+To load the package, run: 
 
 ```{r, message=FALSE}
 library(DESeqtools)

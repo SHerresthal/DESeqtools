@@ -22,7 +22,7 @@
 #' A dataset containing GO term description, the definition and the domain for human gene IDs.
 #' Needs to be combined with GO_hs_1 to get the full dataframe.
 #'
-#' @name GO_hs_1
+#' @name GO_hs_2
 #' @references original file GO_hg38p12_ensembl181121.txt
 
 #' @keywords gene ontology
@@ -159,14 +159,14 @@
 
 #' TF list human
 #'
-#' @name canonicalPathway_genes
+#' @name TFlist_hs
 #' @references \url{}
 #' @format A data frame .
 "TFlist_hs"
 
 #' TF list mouse
 #'
-#' @name canonicalPathway_genes
+#' @name TFlist_mm
 #' @references \url{}
 #' @format A data frame
 "TFlist_mm"
@@ -180,7 +180,7 @@
 #' For consistency, this file should have been produced from the .gtf file used for building the kallisto index. It needs to consist
 #' of four columns: Gene ENSEMBL ID, Transcript ID, Gene Symbol, Gene Type.
 #'
-#' @name tx_annotation_human
+#' @name tx_annotation_v27_human
 #' @references This file corresponds to ID2SYMBOL_gencode_v27_transcript.txt, which has been generated from the GTF file gencode.v27.primary_assembly.annotation.gtf, as downloaded from \url{https://www.gencodegenes.org/human/release_27.html}.
 #' @keywords annotation
 #' @format A data frame with 200468 obs. of  4 variables:
@@ -202,6 +202,7 @@
 #' For consistency, this file should have been produced from the .gtf file used for building the kallisto index. It needs to consist
 #' of four columns: Gene ENSEMBL ID, Transcript ID, Gene Symbol, Gene Type.
 #'
+#' @name tx_annotation_vM13_mouse
 #' @references This file corresponds to ID2SYMBOL_gencode_vM13_transcript.txt, which has been generated from the GTF file gencode.vM13.primary_assembly.annotation.gtf, as downloaded from \url{ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M13/gencode.vM13.primary_assembly.annotation.gtf.gz}.
 #' @keywords annotation
 #' @format A data frame with 125570 obs. of  4 variables:
@@ -222,7 +223,7 @@
 #' 2) annotate the Ensembl IDs with additional information such as gene symbol or type.
 #' For consistency, this file should have been produced from the .gtf file used for building the kallisto index. It needs to consist
 #' of four columns: Gene ENSEMBL ID, Transcript ID, Gene Symbol, Gene Type.
-#'
+#' @name tx_annotation_vM16_mouse
 #' @references This file corresponds to ID2SYMBOL_gencode_vM16_transcript.txt, which has been generated from the GTF file gencode.vM16.primary_assembly.annotation.gtf, as downloaded from \url{ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M16/gencode.vM16.primary_assembly.annotation.gtf.gz}.
 #' @keywords annotation
 #' @format A data frame with 133944 obs. of  4 variables:
@@ -235,11 +236,10 @@
 #'   }
 "tx_annotation_vM16_mouse"
 
-#' Example Sample table
+#' Example sample table referring to the example dataset
 #'
 #' @name example_sampletable
-#' @references \url{}
-#' @keywords pathway genes
+#' @references \url{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE92852}
 #' @format
 "example_sampletable"
 

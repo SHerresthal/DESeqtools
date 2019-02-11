@@ -4,8 +4,7 @@ Title: Package to support analysis and visualization of RNA-seq data with DESeq2
 Version: 0.1.0
 Author: Stefanie Warnat-Herresthal, Jonas Schulte-Schrepping, Nico Reusch
 Maintainer: Stefanie Warnat-Herresthal <stefanie.herresthal@uni-bonn.de>
-Description: This package provides visualizations, wrapper functions an an example workflow for 
-    RNAseq analysis with DESeq2. 
+Description: This package provides visualizations, wrapper functions an an example workflow for RNAseq analysis with DESeq2. 
 License: LGPL (>= 3)
 Encoding: UTF-8
 LazyData: true

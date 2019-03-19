@@ -91,6 +91,12 @@ install_github("SHerresthal/RNA-DESeq2", ref = "package")
 
 To load the package, run: 
 
+```{r}
+library(devtools)
+devtools::load_all()
+```
+
+
 ```{r, message=FALSE}
 library(DESeqtools)
 ```
@@ -1235,7 +1241,7 @@ Next, we perform gene set enrichment analyses of the DE genes of the specified c
 
 ```{r, fig.height=12, fig.width=12}
 GSEA_LPStreated_moDCs_vs_Immature_moDCs <-  GSEA(comparison="LPStreated_moDCs_vs_Immature_moDCs",
-                                 organism=organism,
+                                 organism = organism,
                                  GeneSets = c("GO",
                                               "KEGG",
                                               "Hallmark",
@@ -1245,7 +1251,7 @@ GSEA_LPStreated_moDCs_vs_Immature_moDCs <-  GSEA(comparison="LPStreated_moDCs_vs
                                  GOntology = "BP",
                                  pCorrection = "bonferroni", # choose the p-value adjustment method
                                  pvalueCutoff = 0.05, # set the unadj. or adj. p-value cutoff (depending on correction method)
-                                 qvalueCutoff = 0.05, # set the q-value cutoff (FDR corrected)
+                                 qvalueCutoff = 0.05 # set the q-value cutoff (FDR corrected)
                                  )
 
 GSEA_LPStreated_moDCs_vs_Immature_moDCs$GOup_plot

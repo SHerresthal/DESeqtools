@@ -38,7 +38,8 @@ Depends:
  sva (>= 3.30.1),
  IHW (>= 1.10.1),
  org.Mm.eg.db (>= 3.7.0),
- org.Hs.eg.db (>= 3.7.0)
+ org.Hs.eg.db (>= 3.7.0),
+ ComplexHeatmap(>= 1.20.0)
 Suggests: 
  rmarkdown,
  knitr

@@ -11,22 +11,22 @@
 #' @return Returns a heatmap
 #' @export
 
-plotHeatmap <- function(geneset = "all",
+plotHeatmap <- function(input = norm_anno,
+                        geneset = "all",
                         title="",
                         keyType = "Ensembl",
                         show_rownames = FALSE,
                         cluster_cols = FALSE){
-  if(geneset[1] =="all"){
-    input <- norm_anno
-  }else{
+  if(geneset[1] !="all"){
     if(keyType == "Ensembl"){
-      input <- norm_anno[norm_anno$GENEID %in% geneset,]
+      input <- input[input$GENEID %in% geneset,]
     } else if(keyType == "Symbol"){
-      input <- norm_anno[norm_anno$SYMBOL %in% geneset,]
+      input <- input[input$SYMBOL %in% geneset,]
     } else{
       print("Wrong keyType. Choose Ensembl or Symbol!")
     }
   }
+
   rownames(input) <- paste(input$GENEID, ":", input$SYMBOL, sep="")
   input <- input[,colnames(input) %in% sample_table$ID]
   input_scale <- t(scale(t(input)))

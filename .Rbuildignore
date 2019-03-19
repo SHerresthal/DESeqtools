@@ -3,3 +3,4 @@
 ^prepare_exampledata
 ^.*\.Rmd
 ^.*\.md
+^*\.html

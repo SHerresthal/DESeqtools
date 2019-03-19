@@ -1,0 +1,13 @@
+Module	Section	Sample Name	Source
+FastQC	all_sections	run_1__1559_XXXX_L001_R1	/output/fastqc/run_1/1559_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1561_XXXX_L001_R1	/output/fastqc/run_1/1561_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1557_XXXX_L001_R1	/output/fastqc/run_1/1557_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1562_XXXX_L001_R1	/output/fastqc/run_1/1562_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1563_XXXX_L001_R1	/output/fastqc/run_1/1563_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1564_XXXX_L001_R1	/output/fastqc/run_1/1564_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1558_XXXX_L001_R1	/output/fastqc/run_1/1558_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1553_XXXX_L001_R1	/output/fastqc/run_1/1553_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1555_XXXX_L001_R1	/output/fastqc/run_1/1555_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1554_XXXX_L001_R1	/output/fastqc/run_1/1554_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1556_XXXX_L001_R1	/output/fastqc/run_1/1556_XXXX_L001_R1_fastqc.zip
+FastQC	all_sections	run_1__1560_XXXX_L001_R1	/output/fastqc/run_1/1560_XXXX_L001_R1_fastqc.zip

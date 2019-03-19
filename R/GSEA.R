@@ -3,13 +3,12 @@
 
 GSEA <-  function(comparison,
                   organism,
-                  GeneSets =c("GO","KEGG","Hallmark","cannonicalPathways","Motifs","ImmunoSignatures"),
+                  GeneSets =c("GO","KEGG","DO","Hallmark","cannonicalPathways","Motifs","ImmunoSignatures"),
                   GOntology = "BP",
                   pCorrection = "bonferroni", # choose the p-value adjustment method
                   pvalueCutoff = 0.05, # set the unadj. or adj. p-value cutoff (depending on correction method)
-                  qvalueCutoff = 0.05, # set the q-value cutoff (FDR corrected)
-                  showMax = 20,
-                  font.size = 8){
+                  qvalueCutoff = 0.05 # set the q-value cutoff (FDR corrected)
+){
 
   results <- list()
 
@@ -30,51 +29,32 @@ GSEA <-  function(comparison,
     print("Performing GO enrichment")
     if(length(entrez_up)<20){
       print("Too few upregulated genes for GO enrichment (<20)")
-      results$GO_up <- "Too few upregulated genes for GO enrichment (<20)"
+      results$GOup <- "Too few upregulated genes for GO enrichment (<20)"
     }else{
-      eGO_up <- enrichGO(gene = entrez_up,
-                         universe = universe_Entrez,
-                         OrgDb = OrgDb,
-                         ont = GOntology,
-                         pAdjustMethod = pCorrection,
-                         pvalueCutoff  = pvalueCutoff,
-                         qvalueCutoff  = qvalueCutoff,
-                         readable      = T)
+      results$GOup <- as.data.frame(enrichGO(gene = entrez_up,
+                                             universe = universe_Entrez,
+                                             OrgDb = OrgDb,
+                                             ont = GOntology,
+                                             pAdjustMethod = pCorrection,
+                                             pvalueCutoff  = pvalueCutoff,
+                                             qvalueCutoff  = qvalueCutoff,
+                                             readable      = T))
 
-      results$GOup <- as.data.frame(eGO_up)
-      if(nrow(results$GOup)<1){
-        results$GOup_plot <- "No GO enrichment for upregulated genes"
-      }else{
-        results$GOup_plot <- clusterProfiler::dotplot(eGO_up,
-                                                      showCategory = showMax,
-                                                      font.size= font.size,
-                                                      title = paste("GO enrichment for genes upregulated in: ", comparison,sep="")
-        )
-      }
+      if(nrow(results$GOup)>0){results$GOup$Enrichment <- paste("GO enrichment for genes upregulated in ",comparison,sep="")}
     }
     if(length(entrez_down)<20){
       print("Too few downregulated genes for GO enrichment (<20)")
-      results$GO_down <- "Too few downregulated genes for GO enrichment (<20)"
+      results$GOdown <- "Too few downregulated genes for GO enrichment (<20)"
     }else{
-      eGO_down <- enrichGO(gene = entrez_down,
-                           universe = universe_Entrez,
-                           OrgDb = OrgDb,
-                           ont = GOntology,
-                           pAdjustMethod = pCorrection,
-                           pvalueCutoff  = pvalueCutoff,
-                           qvalueCutoff  = qvalueCutoff,
-                           readable      = T)
-
-      results$GOdown <- as.data.frame(eGO_down)
-      if(nrow(results$GOdown)<1){
-        results$GOdown_plot <- "No GO enrichment for downregulated genes"
-      }else{
-        results$GOdown_plot <- clusterProfiler::dotplot(eGO_down,
-                                                        showCategory = showMax,
-                                                        font.size= font.size,
-                                                        title = paste("GO enrichment for genes downregulated in: ", comparison,sep="")
-        )
-      }
+      results$GOdown <- as.data.frame(enrichGO(gene = entrez_down,
+                                               universe = universe_Entrez,
+                                               OrgDb = OrgDb,
+                                               ont = GOntology,
+                                               pAdjustMethod = pCorrection,
+                                               pvalueCutoff  = pvalueCutoff,
+                                               qvalueCutoff  = qvalueCutoff,
+                                               readable      = T))
+      if(nrow(results$GOdown)>0){results$GOdown$Enrichment <- paste("GO enrichment for genes downregulated in ",comparison,sep="")}
     }
   }
 
@@ -87,67 +67,83 @@ GSEA <-  function(comparison,
 
     if(length(entrez_up)<20){
       print("Too few upregulated genes for KEGG enrichment (<20)")
-      results$KEGG_up <- "Too few upregulated genes for KEGG enrichment (<20)"
+      results$KEGGup <- "Too few upregulated genes for KEGG enrichment (<20)"
     }else{
-      eKEGG_up <- enrichKEGG(gene = entrez_up,
-                             organism = org,
-                             universe = universe_Entrez,
-                             pAdjustMethod = pCorrection,
-                             pvalueCutoff  = pvalueCutoff,
-                             qvalueCutoff = qvalueCutoff)
-
-      results$KEGGup <- as.data.frame(eKEGG_up)
-      if(nrow(results$KEGGup)<1){
-        results$KEGGup_plot <- "No KEGG enrichment for upregulated genes"
-      }else{
-        results$KEGGup_plot <- clusterProfiler::dotplot(eKEGG_up,
-                                                        showCategory = showMax,
-                                                        font.size= font.size,
-                                                        title = paste("KEGG enrichment for genes upregulated in: ",comparison,sep="")
-        )
-      }
+      results$KEGGup <- as.data.frame(enrichKEGG(gene = entrez_up,
+                                                 organism = org,
+                                                 universe = universe_Entrez,
+                                                 pAdjustMethod = pCorrection,
+                                                 pvalueCutoff  = pvalueCutoff,
+                                                 qvalueCutoff = qvalueCutoff))
+      if(nrow(results$KEGGup)>0){results$KEGGup$Enrichment <- paste("KEGG enrichment for genes upregulated in ",comparison,sep="")}
     }
     if(length(entrez_down)<20){
       print("Too few downregulated genes for KEGG enrichment (<20)")
-      results$KEGG_down <- "Too few downregulated genes for KEGG enrichment (<20)"
+      results$KEGGdown <- "Too few downregulated genes for KEGG enrichment (<20)"
     } else{
-      eKEGG_down <- enrichKEGG(gene = entrez_down,
-                               organism = org,
-                               universe = universe_Entrez,
-                               pAdjustMethod = pCorrection,
-                               pvalueCutoff  = pvalueCutoff,
-                               qvalueCutoff = qvalueCutoff)
-
-      results$KEGGdown <- as.data.frame(eKEGG_down)
-      if(nrow(results$KEGGdown)<1){
-        results$KEGGdown_plot <- "No KEGG enrichment for downregulated genes"
-      }else{
-        results$KEGGdown_plot <- clusterProfiler::dotplot(eKEGG_down,
-                                                          showCategory = showMax,
-                                                          font.size= font.size,
-                                                          title = paste("KEGG enrichment for genes upregulated in: ",comparison,sep="")
-        )
-      }
+      results$KEGGdown <- as.data.frame(enrichKEGG(gene = entrez_down,
+                                                   organism = org,
+                                                   universe = universe_Entrez,
+                                                   pAdjustMethod = pCorrection,
+                                                   pvalueCutoff  = pvalueCutoff,
+                                                   qvalueCutoff = qvalueCutoff))
+      if(nrow(results$KEGGdown)>0){results$KEGGdown$Enrichment <- paste("KEGG enrichment for genes downregulated in ",comparison,sep="")}
     }
   }
 
-  if("Hallmark" %in% GeneSets |"cannonicalPathways" %in% GeneSets| "ImmunoSignatures" %in% GeneSets | "Motifs" %in% GeneSets){
-    genes_up_hsa <- getLDS(attributes = c("mgi_symbol"),
-                           filters = "mgi_symbol",
-                           values = DE_up,
-                           mart = useMart("ensembl", dataset = "mmusculus_gene_ensembl"),
-                           attributesL = c("hgnc_symbol"),
-                           martL = useMart("ensembl", dataset = "hsapiens_gene_ensembl"),
-                           uniqueRows=T)[,2]
-    entrez_up_hsa <- bitr(genes_up_hsa, fromType = "SYMBOL", toType="ENTREZID", OrgDb=org.Hs.eg.db)$ENTREZID
-    genes_down_hsa <- getLDS(attributes = c("mgi_symbol"),
-                             filters = "mgi_symbol",
-                             values = DE_down,
-                             mart = useMart("ensembl", dataset = "mmusculus_gene_ensembl"),
-                             attributesL = c("hgnc_symbol"),
-                             martL = useMart("ensembl", dataset = "hsapiens_gene_ensembl"),
-                             uniqueRows=T)[,2]
-    entrez_down_hsa <- bitr(genes_down_hsa, fromType = "SYMBOL", toType="ENTREZID", OrgDb=org.Hs.eg.db)$ENTREZID
+  if("Hallmark" %in% GeneSets |
+     "DO" %in% GeneSets |
+     "cannonicalPathways" %in% GeneSets|
+     "ImmunoSignatures" %in% GeneSets |
+     "Motifs" %in% GeneSets){
+    entrez_up_hsa <- as.character(getLDS(attributes = c("mgi_symbol"),
+                                         filters = "mgi_symbol",
+                                         values = DE_up,
+                                         mart = useMart("ensembl", dataset = "mmusculus_gene_ensembl"),
+                                         attributesL = c("entrezgene"),
+                                         martL = useMart("ensembl", dataset = "hsapiens_gene_ensembl"),
+                                         uniqueRows=T)[,2])
+    entrez_down_hsa <- getLDS(attributes = c("mgi_symbol"),
+                              filters = "mgi_symbol",
+                              values = DE_down,
+                              mart = useMart("ensembl", dataset = "mmusculus_gene_ensembl"),
+                              attributesL = c("entrezgene"),
+                              martL = useMart("ensembl", dataset = "hsapiens_gene_ensembl"),
+                              uniqueRows=T)[,2]
+  }
+
+  # DO enrichment
+  if("DO" %in% GeneSets){
+    print("Performing Disease Ontology enrichment")
+
+    if(length(entrez_up)<20){
+      print("Too few upregulated genes for DO enrichment (<20)")
+      results$DOup <- "Too few upregulated genes for DO enrichment (<20)"
+    }else{
+      results$DOup <- as.data.frame(enrichDO(gene = entrez_up_hsa,
+                                             universe = universe_mouse2human_Entrez,
+                                             pAdjustMethod = pCorrection,
+                                             pvalueCutoff  = pvalueCutoff,
+                                             qvalueCutoff = qvalueCutoff,
+                                             minGSSize     = 5,
+                                             maxGSSize     = 500,
+                                             readable=TRUE))
+      if(nrow(results$DOup)>0){results$DOup$Enrichment <- paste("DO enrichment for genes upregulated in ",comparison,sep="")}
+    }
+    if(length(entrez_down)<20){
+      print("Too few downregulated genes for DO enrichment (<20)")
+      results$DOdown <- "Too few downregulated genes for DO enrichment (<20)"
+    } else{
+      results$DOdown <- as.data.frame(enrichDO(gene = entrez_down_hsa,
+                                               universe = universe_mouse2human_Entrez,
+                                               pAdjustMethod = pCorrection,
+                                               pvalueCutoff  = pvalueCutoff,
+                                               qvalueCutoff = qvalueCutoff,
+                                               minGSSize     = 5,
+                                               maxGSSize     = 500,
+                                               readable=TRUE))
+      if(nrow(results$DOdown)>0){results$DOdown$Enrichment <- paste("DO enrichment for genes downregulated in ",comparison,sep="")}
+    }
   }
 
   # Hallmark enrichment
@@ -155,47 +151,27 @@ GSEA <-  function(comparison,
     print("Performing Hallmark enrichment")
     if(length(entrez_up_hsa)<20){
       print("Too few upregulated genes for Hallmark enrichment (<20)")
-      results$Hallmark_up <- "Too few upregulated genes for Hallmark enrichment (<20)"
+      results$Hallmarkup <- "Too few upregulated genes for Hallmark enrichment (<20)"
     }else{
-      Hallmark_up <- enricher(entrez_up_hsa,
-                              TERM2GENE=hallmark_genes,
-                              universe = universe_mouse2human_Entrez,
-                              pAdjustMethod = pCorrection,
-                              pvalueCutoff  = pvalueCutoff,
-                              qvalueCutoff = qvalueCutoff)
-
-      results$HALLMARKup <- as.data.frame(Hallmark_up)
-      if(nrow(results$HALLMARKup)<1){
-        results$HALLMARKup_plot <- "No Hallmark enrichment for upregulated genes"
-      }else{
-        results$HALLMARKup_plot <- clusterProfiler::dotplot(Hallmark_up,
-                                                            showCategory = showMax,
-                                                            font.size= font.size,
-                                                            title = paste("Hallmark enrichment for genes upregulated in: ",comparison,sep="")
-        )
-      }
+      results$HALLMARKup <- as.data.frame(enricher(entrez_up_hsa,
+                                                   TERM2GENE=hallmark_genes,
+                                                   universe = universe_mouse2human_Entrez,
+                                                   pAdjustMethod = pCorrection,
+                                                   pvalueCutoff  = pvalueCutoff,
+                                                   qvalueCutoff = qvalueCutoff))
+      if(nrow(results$HALLMARKup)>0){results$HALLMARKup$Enrichment <- paste("HALLMARK enrichment for genes upregulated in ",comparison,sep="")}
     }
     if(length(entrez_down_hsa)<20){
       print("Too few downregulated genes for Hallmark enrichment (<20)")
-      results$Hallmark_down <- "Too few downregulated genes for Hallmark enrichment (<20)"
+      results$Hallmarkdown <- "Too few downregulated genes for Hallmark enrichment (<20)"
     }else{
-      Hallmark_down <- enricher(entrez_down_hsa,
-                                TERM2GENE=hallmark_genes,
-                                universe = universe_mouse2human_Entrez,
-                                pAdjustMethod = pCorrection,
-                                pvalueCutoff  = pvalueCutoff,
-                                qvalueCutoff = qvalueCutoff)
-
-      results$HALLMARKdown <- as.data.frame(Hallmark_down)
-      if(nrow(results$HALLMARKdown)<1){
-        results$HALLMARKdown_plot <-"No Hallmark enrichment for downregulated genes"
-      }else{
-        results$HALLMARKdown_plot <- clusterProfiler::dotplot(Hallmark_down,
-                                                              showCategory = showMax,
-                                                              font.size= font.size,
-                                                              title = paste("Hallmark enrichment for genes downregulated in: ",comparison,sep="")
-        )
-      }
+      results$HALLMARKdown <- as.data.frame(enricher(entrez_down_hsa,
+                                                     TERM2GENE=hallmark_genes,
+                                                     universe = universe_mouse2human_Entrez,
+                                                     pAdjustMethod = pCorrection,
+                                                     pvalueCutoff  = pvalueCutoff,
+                                                     qvalueCutoff = qvalueCutoff))
+      if(nrow(results$HALLMARKdown)>0){results$HALLMARKdown$Enrichment <- paste("HALLMARK enrichment for genes downregulated in ",comparison,sep="")}
     }
   }
 
@@ -204,48 +180,27 @@ GSEA <-  function(comparison,
     print("Performing Cannonical Pathway (C2) enrichment")
     if(length(entrez_up_hsa)<20){
       print("Too few upregulated genes for Cannonical Pathway enrichment (<20)")
-      results$cannonicalPathways_up <- "Too few upregulated genes for Motif enrichment (<20)"
+      results$cannonicalPathwaysup <- "Too few upregulated genes for Motif enrichment (<20)"
     }else{
-      cannonicalPathways_up <- enricher(entrez_up_hsa,
-                                        TERM2GENE=cannonicalPathway_genes,
-                                        universe = universe_mouse2human_Entrez,
-                                        pAdjustMethod = pCorrection,
-                                        pvalueCutoff  = pvalueCutoff,
-                                        qvalueCutoff = qvalueCutoff)
-
-      results$cannonicalPathwaysup <- as.data.frame(cannonicalPathways_up)
-      if(nrow(results$cannonicalPathwaysup)<1){
-        results$cannonicalPathwaysup_plot <- "No cannonical pathway enrichment for upregulated genes"
-      }else{
-        results$cannonicalPathwaysup_plot <- clusterProfiler::dotplot(cannonicalPathways_up,
-                                                                      showCategory = showMax,
-                                                                      font.size= font.size,
-                                                                      title = paste("Cannonical pathway  enrichment for genes upregulated in: ",comparison,sep="")
-        )
-      }
+      results$cannonicalPathwaysup <- as.data.frame(enricher(entrez_up_hsa,
+                                                             TERM2GENE=cannonicalPathway_genes,
+                                                             universe = universe_mouse2human_Entrez,
+                                                             pAdjustMethod = pCorrection,
+                                                             pvalueCutoff  = pvalueCutoff,
+                                                             qvalueCutoff = qvalueCutoff))
+      if(nrow(results$cannonicalPathwaysup)>0){results$cannonicalPathwaysup$Enrichment <- paste("Cannonical pathway enrichment for genes upregulated in ",comparison,sep="")}
     }
-
     if(length(entrez_down_hsa)<20){
       print("Too few downregulated genes for cannonical pathway  enrichment (<20)")
-      results$cannonicalPathways_down <- "Too few downregulated genes for cannonical pathway enrichment (<20)"
+      results$cannonicalPathwaysdown <- "Too few downregulated genes for cannonical pathway enrichment (<20)"
     }else{
-      cannonicalPathways_down <- enricher(entrez_down_hsa,
-                                          TERM2GENE=cannonicalPathway_genes,
-                                          universe = universe_mouse2human_Entrez,
-                                          pAdjustMethod = pCorrection,
-                                          pvalueCutoff  = pvalueCutoff,
-                                          qvalueCutoff = qvalueCutoff)
-
-      results$cannonicalPathwaysdown <- as.data.frame(cannonicalPathways_down)
-      if(nrow(results$cannonicalPathwaysdown)<1){
-        results$cannonicalPathwaysdown_plot <-"No cannonical pathway enrichment for downregulated genes"
-      }else{
-        results$cannonicalPathwaysdown_plot <- clusterProfiler::dotplot(cannonicalPathways_down,
-                                                                        showCategory = showMax,
-                                                                        font.size= font.size,
-                                                                        title = paste("Cannonical pathway enrichment for genes downregulated in: ",comparison,sep="")
-        )
-      }
+      results$cannonicalPathwaysdown <- as.data.frame(enricher(entrez_down_hsa,
+                                                               TERM2GENE=cannonicalPathway_genes,
+                                                               universe = universe_mouse2human_Entrez,
+                                                               pAdjustMethod = pCorrection,
+                                                               pvalueCutoff  = pvalueCutoff,
+                                                               qvalueCutoff = qvalueCutoff))
+      if(nrow(results$cannonicalPathwaysdown)>0){results$cannonicalPathwaysdown$Enrichment <- paste("Cannonical pathway enrichment for genes downregulated in ",comparison,sep="")}
     }
   }
 
@@ -254,48 +209,27 @@ GSEA <-  function(comparison,
     print("Performing Motif enrichment")
     if(length(entrez_up_hsa)<20){
       print("Too few upregulated genes for Motif enrichment (<20)")
-      results$Motif_up <- "Too few upregulated genes for Motif enrichment (<20)"
+      results$Motifup <- "Too few upregulated genes for Motif enrichment (<20)"
     }else{
-      Motif_up <- enricher(entrez_up_hsa,
-                           TERM2GENE=motifs,
-                           universe = universe_mouse2human_Entrez,
-                           pAdjustMethod = pCorrection,
-                           pvalueCutoff  = pvalueCutoff,
-                           qvalueCutoff = qvalueCutoff)
-
-      results$Motifup <- as.data.frame(Motif_up)
-      if(nrow(results$Motifup)<1){
-        results$Motifup_plot <- "No Motif enrichment for upregulated genes"
-      }else{
-        results$Motifup_plot <- clusterProfiler::dotplot(Motif_up,
-                                                         showCategory = showMax,
-                                                         font.size= font.size,
-                                                         title = paste("Motif enrichment for genes upregulated in: ",comparison,sep="")
-        )
-      }
+      results$Motifup <- as.data.frame(enricher(entrez_up_hsa,
+                                                TERM2GENE=motifs,
+                                                universe = universe_mouse2human_Entrez,
+                                                pAdjustMethod = pCorrection,
+                                                pvalueCutoff  = pvalueCutoff,
+                                                qvalueCutoff = qvalueCutoff))
+      if(nrow(results$Motifup)>0){results$Motifup$Enrichment <- paste("TF binding motif enrichment for genes upregulated in ",comparison,sep="")}
     }
-
     if(length(entrez_down_hsa)<20){
       print("Too few downregulated genes for Motif enrichment (<20)")
-      results$Motif_down <- "Too few downregulated genes for Motif enrichment (<20)"
+      results$Motifdown <- "Too few downregulated genes for Motif enrichment (<20)"
     }else{
-      Motif_down <- enricher(entrez_down_hsa,
-                             TERM2GENE=motifs,
-                             universe = universe_mouse2human_Entrez,
-                             pAdjustMethod = pCorrection,
-                             pvalueCutoff  = pvalueCutoff,
-                             qvalueCutoff = qvalueCutoff)
-
-      results$Motifdown <- as.data.frame(Motif_down)
-      if(nrow(results$Motifdown)<1){
-        results$Motifdown_plot <-"No Motif enrichment for downregulated genes"
-      }else{
-        results$Motifdown_plot <- clusterProfiler::dotplot(Motif_down,
-                                                           showCategory = showMax,
-                                                           font.size= font.size,
-                                                           title = paste("Motif enrichment for genes downregulated in: ",comparison,sep="")
-        )
-      }
+      results$Motifdown <- as.data.frame(enricher(entrez_down_hsa,
+                                                  TERM2GENE=motifs,
+                                                  universe = universe_mouse2human_Entrez,
+                                                  pAdjustMethod = pCorrection,
+                                                  pvalueCutoff  = pvalueCutoff,
+                                                  qvalueCutoff = qvalueCutoff))
+      if(nrow(results$Motifdown)>0){results$Motifdown$Enrichment <- paste("TF binding motif enrichment for genes downregulated in ",comparison,sep="")}
     }
   }
 
@@ -304,47 +238,27 @@ GSEA <-  function(comparison,
     print("Performing immunesignature enrichment")
     if(length(entrez_up_hsa)<20){
       print("Too few upregulated genes for Immunosignature enrichment (<20)")
-      results$ImmSig_up <- "Too few upregulated genes for Immunosignature enrichment (<20)"
+      results$ImmSigup <- "Too few upregulated genes for Immunosignature enrichment (<20)"
     }else{
-      ImmSig_up <- enricher(entrez_up_hsa,
-                            TERM2GENE=immuno_genes,
-                            universe = universe_mouse2human_Entrez,
-                            pAdjustMethod = pCorrection,
-                            pvalueCutoff  = pvalueCutoff,
-                            qvalueCutoff = qvalueCutoff)
-
-      results$ImmSigup <- as.data.frame(ImmSig_up)
-      if(nrow(results$ImmSigup)<1){
-        results$ImmSigup_plot <- "No Immunosignature enrichment for upregulated genes"
-      }else{
-        results$ImmSigup_plot <- clusterProfiler::dotplot(ImmSig_up,
-                                                          showCategory = showMax,
-                                                          font.size= font.size,
-                                                          title = paste("Immunosignature enrichment for genes upregulated in: ",comparison,sep="")
-        )
-      }
+      results$ImmSigup <- as.data.frame(enricher(entrez_up_hsa,
+                                                 TERM2GENE=immuno_genes,
+                                                 universe = universe_mouse2human_Entrez,
+                                                 pAdjustMethod = pCorrection,
+                                                 pvalueCutoff  = pvalueCutoff,
+                                                 qvalueCutoff = qvalueCutoff))
+      if(nrow(results$ImmSigup)>0){results$ImmSigup$Enrichment <- paste("Immunosignature enrichment for genes upregulated in ",comparison,sep="")}
     }
     if(length(entrez_down_hsa)<20){
       print("Too few downregulated genes for Immunosignature enrichment (<20)")
-      results$ImmSig_down <- "Too few downregulated genes for Immunosignature enrichment (<20)"
+      results$ImmSigdown <- "Too few downregulated genes for Immunosignature enrichment (<20)"
     }else{
-      ImmSig_down <- enricher(entrez_down_hsa,
-                              TERM2GENE=immuno_genes,
-                              universe = universe_mouse2human_Entrez,
-                              pAdjustMethod = pCorrection,
-                              pvalueCutoff  = pvalueCutoff,
-                              qvalueCutoff = qvalueCutoff)
-
-      results$ImmSigdown <- as.data.frame(ImmSig_down)
-      if(nrow(results$ImmSigdown)<1){
-        results$ImmSigdown_plot <- "No Immunosignature enrichment for downregulated genes"
-      }else{
-        results$ImmSigdown_plot <- clusterProfiler::dotplot(ImmSig_down,
-                                                            showCategory = showMax,
-                                                            font.size= font.size,
-                                                            title = paste("Immunosignature enrichment for genes downregulated in: ",comparison,sep="")
-        )
-      }
+      results$ImmSigdown <- as.data.frame(enricher(entrez_down_hsa,
+                                                   TERM2GENE=immuno_genes,
+                                                   universe = universe_mouse2human_Entrez,
+                                                   pAdjustMethod = pCorrection,
+                                                   pvalueCutoff  = pvalueCutoff,
+                                                   qvalueCutoff = qvalueCutoff))
+      if(nrow(results$ImmSigdown)>0){results$ImmSigdown$Enrichment <- paste("Immunosignature enrichment for genes downregulated in ",comparison,sep="")}
     }
   }
   results

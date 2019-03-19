@@ -10,7 +10,35 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 biocViews:
-Depends: R (>= 3.5.2), pheatmap (>= 1.0.12), DESeq2 (>= 1.22.2), tidyr (>= 0.8.2), ggplot2 (>= 3.1.0), ggrepel (>= 0.8.0), gplots (>= 3.0.1.1), ggbeeswarm (>= 0.6.0), hexbin (>= 1.27.2), reshape2 (>= 1.4.3), factoextra (>= 1.0.5), Hmisc (>= 4.2.0), VennDiagram (>= 1.6.20), openxlsx (>= 4.1.0), rhdf5 (>= 2.26.2), clusterProfiler (>= 3.10.1), GSEABase (>= 1.44.0), RColorBrewer (>= 1.1.2), ComplexHeatmap (>= 1.20.0), tximport (>= 1.10.1), vsn (>= 3.50.0), genefilter (>= 1.64.0), biomaRt (>= 2.38.0), limma (>= 3.38.3), sva (>= 3.30.1), IHW (>= 1.10.1), org.Mm.eg.db (>= 3.7.0), org.Hs.eg.db (>= 3.7.0)
+Depends: 
+ R (>= 3.5.2),
+ pheatmap (>= 1.0.12),
+ DESeq2 (>= 1.22.2),
+ tidyr (>= 0.8.2),
+ ggplot2 (>= 3.1.0),
+ ggrepel (>= 0.8.0),
+ gplots (>= 3.0.1.1),
+ ggbeeswarm (>= 0.6.0),
+ hexbin (>= 1.27.2),
+ reshape2 (>= 1.4.3),
+ factoextra (>= 1.0.5),
+ Hmisc (>= 4.2.0),
+ VennDiagram (>= 1.6.20),
+ openxlsx (>= 4.1.0),
+ rhdf5 (>= 2.26.2),
+ clusterProfiler (>= 3.10.1),
+ GSEABase (>= 1.44.0),
+ RColorBrewer (>= 1.1.2),
+ ComplexHeatmap (>= 1.20.0),
+ tximport (>= 1.10.1),
+ vsn (>= 3.50.0),
+ genefilter (>= 1.64.0),
+ biomaRt (>= 2.38.0),
+ limma (>= 3.38.3),
+ sva (>= 3.30.1),
+ IHW (>= 1.10.1),
+ org.Mm.eg.db (>= 3.7.0),
+ org.Hs.eg.db (>= 3.7.0)
 Suggests: 
  rmarkdown,
  knitr

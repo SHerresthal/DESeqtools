@@ -14,6 +14,7 @@ DEAnalysis <- function(condition,
                        lfcThreshold = 0,
                        sigFC = 2,
                        multiple_testing = "IHW",
+                       independentFiltering="TRUE",
                        shrinkage = TRUE,
                        shrinkType = "normal"){
   # create results_list
@@ -46,7 +47,7 @@ DEAnalysis <- function(condition,
                                             paste(comparison_table$control[i])),
                                lfcThreshold = lfcThreshold,
                                alpha = alpha,
-                               independentFiltering = TRUE,
+                               independentFiltering = independentFiltering,
                                altHypothesis = "greaterAbs",
                                pAdjustMethod= multiple_testing)
     }
@@ -82,7 +83,36 @@ DEAnalysis <- function(condition,
     res_deseq_lfc$comparison<-paste(comparison_table$comparison[i]," vs ",comparison_table$control[i],
                                     sep="")
     # re-order results table
-    res_deseq_lfc<-res_deseq_lfc[c(1,10:14,9,2:8)]
+    if (multiple_testing=="IHW") {
+      res_deseq_lfc<-res_deseq_lfc[,c("GENEID",
+                                      "SYMBOL",
+                                      "GENETYPE",
+                                      "DESCRIPTION",
+                                      "CHR",
+                                      "comparison",
+                                      "regulation",
+                                      "baseMean",
+                                      "log2FoldChange",
+                                      "lfcSE",
+                                      "stat",
+                                      "pvalue",
+                                      "padj",
+                                      "weight")]
+    }else{
+      res_deseq_lfc<-res_deseq_lfc[,c("GENEID",
+                                      "SYMBOL",
+                                      "GENETYPE",
+                                      "DESCRIPTION",
+                                      "CHR",
+                                      "comparison",
+                                      "regulation",
+                                      "baseMean",
+                                      "log2FoldChange",
+                                      "lfcSE",
+                                      "stat",
+                                      "pvalue",
+                                      "padj")]
+    }
     # print result table
     DE_object@results <- res_deseq_lfc
     # print DE genes in seperate tables
@@ -96,7 +126,6 @@ DEAnalysis <- function(condition,
   }
   return(results_list)
 }
-
 
 
 #'  Union of DEgenes

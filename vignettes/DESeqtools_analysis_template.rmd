@@ -218,7 +218,7 @@ For many projects, multiple sequencing runs are necessary to get a satisfactory 
 
 For more information on fastQC, please check: https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
 
-```{r MultiQC import, eval = F}
+```{r MultiQC import, eval = T}
 fastq_qc <- read.delim(file.path(dir, "Data", "output", "qc", "multiqc", "multiqc_data",
                                  "multiqc_fastqc.txt"),
                        stringsAsFactors = F)

@@ -14,7 +14,7 @@ DEAnalysis <- function(condition,
                        lfcThreshold = 0,
                        sigFC = 2,
                        multiple_testing = "IHW",
-                       independentFiltering="TRUE",
+                       independentFiltering= TRUE,
                        shrinkage = TRUE,
                        shrinkType = "normal"){
   # create results_list

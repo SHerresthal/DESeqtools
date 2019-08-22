@@ -38,6 +38,13 @@ Depends: R (>= 3.5.2),
     IHW (>= 1.10.1),
     org.Mm.eg.db (>= 3.7.0),
     org.Hs.eg.db (>= 3.7.0),
-    ComplexHeatmap(>= 1.20.0)
+    ComplexHeatmap(>= 1.20.0),
+    ggpubr (>= 0.2.1),
+    useful (>= 1.2.6),
+    hexbin (>= 1.27.3),
+    checkmate (>= 1.9.3),
+    dplyr (>= 0.8.2),
+    RColorBrewer (>= 2.2.0),
+    plotly (>= 3.2.0)    
 Suggests: rmarkdown, knitr
 VignetteBuilder: knitr

@@ -6,7 +6,8 @@
 \usage{
 plotPCA(pca_input = dds_vst, ntop = 500, xPC = 1, yPC = 2, color,
   anno_colour, shape = "NULL", point_size = 3, title = "PCA",
-  label = NULL, label_subset = NULL)
+  label = NULL, label_subset = NULL, gene_anno = gene_annotation,
+  gene_type = "all")
 }
 \arguments{
 \item{pca_input}{input dataset, default: dds_vst}

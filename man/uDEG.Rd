@@ -2,11 +2,13 @@
 % Please edit documentation in R/DEanalysis.R
 \name{uDEG}
 \alias{uDEG}
-\title{Union of DEgenes
- Gives the intersection of DE gene lists (comparisons)}
+\title{Union of DEgenes}
 \usage{
 uDEG(comparisons)
 }
 \description{
+Gives the intersection of DE gene lists (comparisons)
+}
+\details{
 @export
 }

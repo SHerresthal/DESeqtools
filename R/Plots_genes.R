@@ -94,3 +94,4 @@ highestGenes <- function(numGenes=10){
     theme(axis.text.x = element_text(size=8, angle = 90, hjust = 1),
           plot.title = element_text(size = 8, face = "bold"))
 }
+

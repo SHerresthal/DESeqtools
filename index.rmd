@@ -84,21 +84,19 @@ Some explanations in this script are borrowed from the great vignette of the DES
 First, you need to make sure that you have the devtools package installed. Then, you can install the DESeqtools package from Github, which will automatically install all package dependencies and annotation files. 
 
 ```{r, eval = F}
-install.packages("devtools")
-library("devtools")
-install_github("SHerresthal/RNA-DESeq2", ref = "package")
+#install.packages("devtools")
+# library("devtools")
+#install_github("deniznazs/DESeqtools", ref = "package")
 ```
 
 To load the package, run: 
 
 ```{r}
 library(devtools)
-devtools::load_all()
-```
 
+devtools::load_all(path = "E:/Deniz/Git/usr/bin/DESeqtools_Deniz")
+devtools::document()
 
-```{r, message=FALSE}
-library(DESeqtools)
 ```
 
 Since the gene ontology files are too large to put them on github, you have to load them in two chunks and combine them. 
@@ -164,7 +162,7 @@ organism = "human" # choose "mouse" or "human"
 
 If you want to run the script on your own data, you can specify the directory and save it unrer "dir". Then, the output directories are automatically created. 
 ```{r, warning=F, eval = F}
-dir <- "E:/sciebo/DESeq2_pipeline"
+dir <- "E:/Deniz/Git/usr/bin/DESeqtools_Deniz/inst/extdata"
 
 # creating output directories (if not already existing):
 dir.create(file.path(dir, "Analysis", "Tables"), recursive = T)
@@ -174,6 +172,35 @@ For demonstation purposes, we take data which is installed with the package and 
 ```{r}
 dir <- system.file("extdata", package = "DESeqtools")
 ```
+
+## Colour scheme customization
+
+Define you colour schemes according to your data set and your variables!
+
+For hex colors use: https://www.color-hex.com
+
+```{r}
+# cell_Type
+col_cellType <- c("#81c354", "#86BE9E")
+names(col_cellType) <- c("moDC", "IL10APC") 
+# treatment
+col_treat = c("#CCBD80","#FFEDA0", "#FEB24C", "#F03B20")
+names(col_treat) <- c("undiff", "LPS","IL10", "LPS_IL10")
+# donor
+col_donor <- c("#66C3D0", "#008DD2","#0066D2")
+names(col_donor) <- c("BC2", "BC3","BC5")
+# merged: cell_Type and treatment
+col_condition <- c(brewer.pal(3, "Blues")[2:3], brewer.pal(3, "Oranges")[2:3])
+names(col_condition) <- c("Immature_moDCs","LPStreated_moDCs","Immature_IL10APCs","LPStreated_IL10APCs")
+
+# combine color code into list
+ann_colors_new <- list(cell_Type = col_cellType, 
+                   treatment=col_treat,
+                  donor = col_donor, 
+                  condition=col_condition)
+
+```
+
 
 
 # Data Import
@@ -337,7 +364,13 @@ files <- paste(dir, "/Data/output/kallisto/kallisto/", sample_table$ID, "/abunda
 names(files) <- sample_table$ID
 # choose your tx2gene-annotation based on the annotation you used for kallisto
 tx_annotation <- tx_annotation_v27_human
-																  
+
+# make sure sample annotation and counts are in the same order
+identical(rownames(sample_table), names(files))
+# reorder the files to import
+files <- files[as.character(sample_table$ID)]
+identical(rownames(sample_table), names(files)) # should be true now
+
 # Import samples and perform the distribution of transcripts to genes
 txi_kallisto <- tximport(files, 
                          type="kallisto", 
@@ -354,6 +387,7 @@ A DESeqDataSet object must have an associated design formula. The design formula
 dds_txi <- DESeqDataSetFromTximport(txi = txi_kallisto, 
                                     colData = sample_table,
                                     design = ~ condition)
+
 ```
 
 ## Pre-filtering
@@ -402,16 +436,21 @@ dds <- DESeq(dds)
 
 For inspection of the normalized data, we write the normalized counts into a data.frame called "norm_anno".
 
-```{r gene annotation}
+```{r gene annotation-2}
 norm_anno <- as.data.frame(counts(dds, normalized=T))
+unnorm_anno<-as.data.frame(counts(dds, normalized=F))#Deniz
+
 norm_anno$GENEID <- row.names(norm_anno)
+unnorm_anno$GENEID <- row.names(unnorm_anno)#Deniz
 
 # add gene annotation extracted from the gtf file
 gene_annotation <- tx_annotation[!duplicated(tx_annotation$GENEID),c("GENEID", "SYMBOL", "GENETYPE")]
 gene_annotation <- gene_annotation[match(rownames(norm_anno), gene_annotation$GENEID),]
+gene_annotation <- gene_annotation[match(rownames(unnorm_anno), gene_annotation$GENEID),]#Deniz
 
 # check if row names of the normalized table and the gene annotation match perfectly
 all(rownames(norm_anno) == gene_annotation$GENEID)
+all(rownames(unnorm_anno) == gene_annotation$GENEID)#Deniz
 
 # add additional gene annotation downloaded from biomart
 if(organism == "human"){
@@ -431,7 +470,84 @@ norm_anno <- merge(norm_anno,
 rownames(norm_anno) <- norm_anno$GENEID
 
 norm_anno[1:3,c(1:2, (ncol(norm_anno)-5):ncol(norm_anno))]
+
+#Deniz
+unnorm_anno <- merge(unnorm_anno,
+                   gene_annotation,
+                   by = "GENEID")
+rownames(unnorm_anno) <- unnorm_anno$GENEID
+
+unnorm_anno[1:3,c(1:2, (ncol(unnorm_anno)-5):ncol(unnorm_anno))]
 ```
+
+##Boxplot of normalized and unnorm gene expression
+
+```{r boxplot of unnormalized vs normalized}
+#Boxplot and comparison btw unnorm_anno vs norm_anno
+
+######first, create a sample table just taking the sample ID and condition for boxplot
+box_sample_table<-sample_table[,c("ID","condition")]#depending on choice, change the condition to smt else
+
+#ordering for the legend labels
+legend_order <- factor(unique(sample_table$condition),
+                 levels = unique(sample_table$condition))
+legend_order<-levels(legend_order)
+
+######norm_anno boxplot
+box_norm_table<-norm_anno[,colnames(norm_anno)%in%box_sample_table$ID]
+box_norm_table$GENEID<-rownames(box_norm_table)
+
+###restructuring the table for ggplot2 analysis w/ melt function 
+
+box_norm_table<-melt(box_norm_table, id.vars=c("GENEID"))
+colnames(box_norm_table)<-c("GENEID","sample","expression")
+box_norm_table<-merge(box_norm_table,box_sample_table,by.x="sample",by.y="ID")
+
+box_norm_table$condition<-factor(box_norm_table$condition, levels=legend_order)
+
+p1<-ggplot(box_norm_table, mapping = aes(x=sample , y= expression+1,fill=condition))+
+  geom_boxplot()+
+  #geom_boxplot(outlier.shape = NA)+ #to make the outlier points transparent
+  scale_y_log10()+
+  scale_fill_manual(values = col_condition)+
+  #scale_fill_discrete(breaks=fill)+
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90))+
+  xlab("Samples") + ylab("normalized expression") + 
+  ggtitle("Normalized gene expression analysis") 
+
+
+
+######unnorm_anno boxplot
+box_unnorm_table<-unnorm_anno[,colnames(unnorm_anno)%in%box_sample_table$ID]
+box_unnorm_table$GENEID<-rownames(box_unnorm_table)
+
+###restructuring the table for ggplot2 analysis w/ melt function 
+
+box_unnorm_table<-melt(box_unnorm_table, id.vars=c("GENEID"))
+colnames(box_unnorm_table)<-c("GENEID","sample","expression")
+box_unnorm_table<-merge(box_unnorm_table,box_sample_table,by.x="sample",by.y="ID")
+
+box_unnorm_table$condition<-factor(box_unnorm_table$condition, levels=legend_order)
+
+p2<-ggplot(box_unnorm_table, mapping = aes(x=sample , y= expression+1,fill=condition))+
+  geom_boxplot()+
+  #geom_boxplot(outlier.shape = NA)+ #to make the outlier points transparent
+  scale_y_log10()+ #to change the y-axis limit
+  scale_fill_manual(values = col_condition)+
+  #scale_fill_discrete(breaks=fill)+
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90),legend.position="none")+
+  xlab("Samples") + ylab("unnormalized expression") + 
+  ggtitle("Unnormalized gene expression analysis") 
+
+#combining two boxplots into one plot with common legend
+library(ggpubr)
+ggarrange(p2, p1, ncol=2, common.legend = TRUE, legend="bottom")
+
+
+```
+
 
 ## Variance stabilizing transformation
 
@@ -489,10 +605,68 @@ plot_annotation <- sample_table[,c("condition","donor","pseudoaligned_reads"), d
 
 rownames(plot_annotation) <- sample_table$ID
 ```
+
 ```{r}
 # choose colours for your conditions
 ann_colors <- setColours(factorcolours = c("Set1","Set2"))
 ```
+
+
+## Means for plotting
+
+```{r create means}
+
+norm_mean<-mean_function(input=norm_anno, 
+                         anno=sample_table,
+                         condition="condition")#Deniz: depending on your desired condition, can change it and put any other column name from sample_table
+
+vst_mean<-mean_function(input=vst_anno,
+                        anno = sample_table,
+                        condition = "condition")#Deniz: depending on your desired condition, can change it and put any other column name from sample_table
+
+library(useful)
+corner(vst_mean)
+
+```
+
+Mean sample table
+
+```{r create mean sample table}
+# function to create mean_sample_table depending on your condition called mean_sample_definition
+
+mean_sample_table<- sample_table[!duplicated(sample_table$condition),]#mean sample table is generated firsly from sample_table
+rownames(mean_sample_table)<-mean_sample_table$condition
+mean_sample_table<-subset(mean_sample_table,select=-c(ID,donor))#ID and donor columns are excluded
+
+mean_sample_table<-mean_sample_definition(input=mean_sample_table,
+                                          anno=sample_table,
+                                          condition="condition")
+
+mean_sample_table
+
+corner(mean_sample_table)
+```
+
+
+Specify mean sample annotation for plotting
+
+```{r}
+# choose columns from sampletable for heatmap annotation
+#consistency for writing in capital or small letters!
+mean_plot_annotation <- mean_sample_table[,c("condition","pseudoaligned_reads"), drop = F]
+
+rownames(mean_plot_annotation) <- mean_sample_table$condition
+
+# plot_order
+
+mean_sample_table$condition<- factor(mean_sample_table$condition,
+                                    levels=c("Immature_moDCs","LPStreated_moDCs","Immature_IL10APCs","LPStreated_IL10APCs"))
+
+plot_order<-"condition"
+
+```
+
+
 
 ## Frequencies of gene types
 ```{r plot genetypes}
@@ -532,21 +706,104 @@ Plot a heatmap of all hierarchically clustered present genes.
 
 I case your machine has only 8 gb of ram, plotting a heatmap of all present genes might exceed your memory capacities and give the error: "Error: cannot allocate vector of size XX Gb". In that case, you can either reduce the genes to present based on a higher expression cutoff or continue with the heatmap of variable genes.
 
-### clustered Columns & Rows
+### clustered Columns & Rows-all samples
 ```{r, echo=TRUE, fig.height=10, fig.width=12}
-plotHeatmap(geneset = "all",
-            title = "Heatmap of all present genes",
+
+plotHeatmap(input=norm_anno,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            geneset = "all",
+            title = "Heatmap of all present genes (normalized counts)",
             show_rownames = FALSE,
-            cluster_cols = TRUE)
+            cluster_cols = TRUE,
+            gene_type = "all")
+
+plotHeatmap(input=vst_anno,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            geneset = "all",
+            title = "Heatmap of all present genes (log2 normalized counts)",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
 ```
 
-### clustered Rows
-```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
-plotHeatmap(geneset = "all",
-                title = "Heatmap of all present genes",
-                show_rownames = FALSE,
-                cluster_cols = FALSE)
+### clustered Columns & Rows-means of conditions
+```{r, echo=TRUE, fig.height=10, fig.width=12}
+plotHeatmap(input=norm_mean,
+            smp_table = mean_sample_table,
+          
+            plot_anno = mean_plot_annotation,
+            geneset = "all",
+            title = "Heatmap of all present genes (normalized counts)",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
+
+plotHeatmap(input=vst_mean,
+            smp_table = mean_sample_table,
+    
+            plot_anno = mean_plot_annotation,
+            geneset = "all",
+            title = "Heatmap of all present genes (log2 normalized counts)",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
+
 ```
+
+
+
+### clustered Rows-all samples
+```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
+plotHeatmap(input=norm_anno ,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            geneset = "all",
+            title = "Heatmap of all present genes (normalized counts)",
+            show_rownames = FALSE,
+            cluster_cols = FALSE,
+            gene_type = "all")
+
+plotHeatmap(input=vst_anno ,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            geneset = "all",
+            title = "Heatmap of all present genes (log2 normalized counts)",
+            show_rownames = FALSE,
+            cluster_cols = FALSE,
+            gene_type = "all")
+
+```
+
+### clustered Rows- means of conditions
+```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
+plotHeatmap(input=norm_mean,
+            smp_table = mean_sample_table,
+            plot_anno = mean_plot_annotation,
+          
+            geneset = "all",
+            title = "Heatmap of all present genes (normalized counts)",
+            show_rownames = FALSE,
+            cluster_cols = FALSE,
+            gene_type = "all")
+
+plotHeatmap(input=vst_mean,
+            smp_table = mean_sample_table,
+            plot_anno = mean_plot_annotation,
+       
+            geneset = "all",
+            title = "Heatmap of all present genes (log2 normalized counts)",
+            show_rownames = FALSE,
+            cluster_cols = FALSE,
+            gene_type = "all")
+
+```
+
 
 ```{r,echo=FALSE,message=FALSE}
 gc()
@@ -561,59 +818,144 @@ q75 = quantile(rowVars(assay(dds_vst)), .75)
 q75_names = names(which(rv > q75))
 ```
 
-###  clustered Columns & Rows
+
+###  clustered Columns & Rows- all samples
 ```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
-plotHeatmap(geneset = q75_names,
-                title = "Heatmap of all most variable genes",
-                show_rownames = FALSE,
-                cluster_cols = TRUE)
+plotHeatmap(input=norm_anno,
+            smp_table=sample_table,
+           
+            geneset =q75_names,
+            title = "Heatmap of Top 75% most variable genes (log2 normalized counts)",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            plot_anno=plot_annotation,
+            gene_type = "all")
+
+plotHeatmap(input=vst_anno,
+            smp_table=sample_table,
+           
+            geneset =q75_names,
+            title = "Heatmap of Top 75% most variable genes (log2 normalized counts)",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            plot_anno=plot_annotation,
+            gene_type = "all")
+
+
 ```
 
-###  clustered Rows
+###  clustered Columns & Rows-means of conditions
 ```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
-plotHeatmap(geneset = q75_names,
-                title = "Heatmap of all most variable genes",
-                show_rownames = FALSE,
-                cluster_cols = FALSE)
+plotHeatmap(input=norm_mean,
+            smp_table=mean_sample_table,
+         
+            geneset =q75_names,
+            title = "Heatmap of Top 75% most variable genes (log2 normalized counts)",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            plot_anno=mean_plot_annotation,
+            gene_type = "all")
+
+```
+
+###  clustered Rows-all samples
+```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
+plotHeatmap(input=norm_anno, 
+            smp_table=sample_table,
+           
+            geneset = q75_names,
+            title = "Heatmap of all most variable genes",
+            show_rownames = FALSE,
+            cluster_cols = FALSE,
+            plot_anno=plot_annotation,
+            gene_type = "all")
+
+```
+
+
+###  clustered Rows-conditions
+```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
+plotHeatmap(input=vst_mean, 
+            smp_table=mean_sample_table,
+           
+            geneset = q75_names,
+            title = "Heatmap of all most variable genes",
+            show_rownames = FALSE,
+            cluster_cols = FALSE,
+            plot_anno=mean_plot_annotation,
+            gene_type="all")
+
+plotHeatmap(input=vst_mean, 
+            smp_table=mean_sample_table,
+            
+            geneset = q75_names,
+            title = "Heatmap of all most variable genes",
+            show_rownames = FALSE,
+            cluster_cols = FALSE,
+            plot_anno=mean_plot_annotation,
+            gene_type="antisense_RNA")
+
 ```
 
 ## Sample-to-Sample correlation & distance {.tabset .tabset-fade}
 
+```{r common input for corr. and dist.}
+cd_input<-as.data.frame(assay(dds_vst))
+
+```
+
+
 ### Correlation
 
 ```{r, fig.height=10, fig.width=12}
-# Correlation based on variance-stabilized counts
-sampleCor <- as.matrix(cor(assay(dds_vst), use="all.obs", method="pearson"))
-rownames(sampleCor)<- sample_table$ID
-colnames(sampleCor)<- sample_table$ID
 
-pheatmap(sampleCor,
-         main="Sample Correlation based on variance-stabilized counts",
-         annotation_row = plot_annotation,
-         annotation_col = plot_annotation,
-         annotation_colors = ann_colors,
-         cluster_rows = F,
-         cluster_cols = F,
-         fontsize = 8)
+corr_function(sampleCor = cd_input,
+               title="Sample Correlation based on variance-stabilized counts",
+               gene_anno=gene_annotation,
+               plot_anno=plot_annotation,
+               gene_type="all",
+               cluster_rows=F,
+               cluster_cols=F,
+               mean=F)
+
+ corr_function(sampleCor = cd_input,
+               title="Sample Correlation based on variance-stabilized counts",
+               gene_anno=gene_annotation,
+               plot_anno=mean_plot_annotation,
+               gene_type="all",
+               cluster_rows=F,
+               cluster_cols=F,
+               mean=T)
+
+ corr_function(sampleCor =  cd_input,
+               title="Sample Correlation based on variance-stabilized counts",
+               gene_anno=gene_annotation,
+               plot_anno=plot_annotation,
+               gene_type="ribozyme",
+               cluster_rows=F,
+               cluster_cols=F,
+               mean=F)
 ```
 
 ### Distance  
 This function computes and returns the euclidean distance matrix between the rows of a data matrix, the samples in our case. 
 
 ```{r, fig.height=10, fig.width=12}
-# Sample Distances based on variance-stabilized counts
-sampleDist <- as.matrix(dist(t(assay(dds_vst))))
-rownames(sampleDist)<- sample_table$ID
-colnames(sampleDist)<- sample_table$ID
+dist_function(sampleDist = cd_input,
+              gene_anno=gene_annotation,
+              plot_anno=plot_annotation,
+              title="Sample distances based on variance-stabilized counts per sample",
+              gene_type="all",
+              mean=F)
 
-pheatmap(sampleDist,
-         clustering_distance_rows = dist(t(assay(dds_vst))),
-         clustering_distance_cols = dist(t(assay(dds_vst))), 
-         main="Sample distances based on variance-stabilized counts per sample",
-         annotation_row = plot_annotation, 
-         annotation_col = plot_annotation,
-         annotation_colors = ann_colors,
-         fontsize = 8)
+dist_function(sampleDist = cd_input,
+              gene_anno=gene_annotation,
+              plot_anno=mean_plot_annotation,
+              title="Sample distances based on variance-stabilized counts per sample",
+              gene_type="all",
+              mean=T)
+
+
 ```
 
 ## Principle Component Analysis 
@@ -652,8 +994,23 @@ plotPCA(ntop="all",
         anno_colour = ann_colors$condition,
         shape="NULL",
         point_size=3,
+        gene_type = "all",
         label= "ID",
-        title="Principle Component Analysis based on variance-stabilized counts")
+        title="Principle Component Analysis based on variance-stabilized counts",
+        gene_anno = gene_annotation)
+
+plotPCA(ntop="all", 
+        xPC=1, 
+        yPC=2,
+        color= "condition",
+        anno_colour = ann_colors$condition,
+        shape="NULL",
+        point_size=3,
+        gene_type = "protein_coding",
+        label= "ID",
+        title="Principle Component Analysis based on variance-stabilized counts",
+        gene_anno = gene_annotation)
+
 ```
 
 #### Donor 
@@ -682,6 +1039,24 @@ plotPCA(ntop="all",
          title="Principle Component Analysis based on variance-stabilized counts")
 ```
 
+### 3D PCA
+
+Please comment this chunk out when knitting to an HTML file because it will lead to a corrupt HTML file.
+
+```{r 3D_PCA}
+plot3D_pca(pca3d_input=dds_vst,
+           sample_table=sample_table,
+           gene_anno=gene_annotation,
+           gene_type="all",
+           xPC=1,
+           yPC=2,
+           zPC=3,
+           ntop="all",
+           anno_colour = col_condition,
+           point_size =10)
+```
+
+
 ### PCA loadings
 ```{r}
 plotLoadings(PC="PC1", ntop="all")
@@ -708,10 +1083,15 @@ rcor_filt_melt <- melt(rcor_filt,na.rm = TRUE)
 rcor_filt_melt_cutoff <- rcor_filt_melt[rcor_filt_melt$value>0.95,]
 varR <- unique(rcor_filt_melt_cutoff$Var1)
 
-plotHeatmap(geneset = varR,
-                title = "Heatmap of all variable and co-expressed genes",
-                show_rownames = FALSE,
-                cluster_cols = FALSE)
+plotHeatmap(input=vst_anno, 
+            smp_table=sample_table,
+           
+            geneset = varR,
+            title = "Heatmap of all variable and co-expressed genes",
+            show_rownames = FALSE,
+            cluster_cols = FALSE,
+            plot_anno=plot_annotation,
+            gene_type = "all")
 ```
 
 ## Expression of selected genes across conditions
@@ -723,13 +1103,13 @@ plotSingleGene(data=norm_anno,
                  symbol="ITGAM", 
                  condition="condition",
                  anno_colour=ann_colors$condition,
-                 shape= NULL)
+                 shape= NULL)+theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 plotSingleGene(data=norm_anno, 
                  symbol="WDR18", 
                  condition="condition",
                  anno_colour=ann_colors$condition,
-                 shape= "donor")
+                 shape= "donor")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
 ## Heatmap of selected genes sets
@@ -737,17 +1117,40 @@ plotSingleGene(data=norm_anno,
 Plot a heatmap of genes annotated to a selected GO, KEGG or Hallmark term.
 
 ```{r, fig.height= 12, fig.width=12}
-plotGeneSetHeatmap(cat="GO", 
+plotGeneSetHeatmap(input=norm_anno,
+                   smp_table = sample_table,
+                   plot_anno = plot_annotation,
+                  
+                   cat="GO", 
                    term="neutrophil degranulation",
                    organism = "human",
-                   show_rownames =FALSE, 
-                   cluster_cols = FALSE)
+                   show_rownames =F, 
+                   cluster_cols = F,
+                   gene_type = "all")
 
-plotGeneSetHeatmap(cat="KEGG", 
+plotGeneSetHeatmap(input=norm_mean,
+                   smp_table = mean_sample_table,
+                   plot_anno = mean_plot_annotation,
+             
+                   cat="GO", 
+                   term="neutrophil degranulation",
+                   organism = "human",
+                   show_rownames =F, 
+                   cluster_cols = F,
+                   gene_type = "protein_coding")
+
+plotGeneSetHeatmap(input=norm_anno,
+                   smp_table = sample_table,
+                   plot_anno = plot_annotation,
+                  
+                   cat="KEGG", 
                    term="Alzheimer disease",
                    organism = "human",
-                   show_rownames =TRUE, 
-                   cluster_cols = FALSE)
+                   show_rownames =T, 
+                   cluster_cols = F,
+                   gene_type = "all")
+
+
  
 ```
 
@@ -771,15 +1174,170 @@ removedbatch_dds_vst <- limmaBatchEffectRemoval(input=dds_vst,
                                                    batchfactor = "donor",
                                                    batchfactor_2 = NULL)
 plotPCA(pca_input = removedbatch_dds_vst,
-         ntop="all", 
-         xPC=1,
-         yPC=2,
-         color="condition",
-         anno_colour = ann_colors$condition,
-         shape="donor",
-         point_size=3,
-         title="PCA of batch-corrected counts")
+        ntop="all", 
+        xPC=1,
+        yPC=2,
+        color="condition",
+        anno_colour = ann_colors$condition,
+        shape="donor",
+        point_size=3,
+        title="PCA of batch-corrected counts",
+        gene_anno=gene_annotation,
+        gene_type="all")
+
+
 ```
+
+
+## Batch-corrected table
+
+For later plotting of Heatmaps, it may be useful to have a dataframe of the batch-corrected values as log2-transformed (removedbatch_anno_log2) as well as as normal counts (removedbatch_anno).
+
+```{r}
+removedbatch_anno_log2<-removedbatch_dds_vst
+removedbatch_anno_log2<-merge(removedbatch_anno_log2,norm_anno[,c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")],by="row.names")
+rownames(removedbatch_anno_log2)<-removedbatch_anno_log2$Row.names
+removedbatch_anno_log2$Row.names<-NULL
+removedbatch_anno<-removedbatch_dds_vst
+removedbatch_anno<-2^removedbatch_anno
+removedbatch_anno<-merge(removedbatch_anno,norm_anno[,c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")],by="row.names")
+rownames(removedbatch_anno)<-removedbatch_anno$Row.names
+removedbatch_anno$Row.names<-NULL
+```
+
+
+
+
+### Create means of vst_anno and removedbatch_anno_log2
+```{r}
+removedbatch_mean_log2<-mean_function(input=removedbatch_anno_log2,
+                                      anno = sample_table,
+                                      condition = "condition")
+
+corner(removedbatch_mean_log2)
+```
+
+## Heatmaps etc. to plot the removed batch-corrected count_matrix {.tabset .tabset-fade}
+
+### all samples
+```{r, echo=TRUE, fig.height=10, fig.width=12}
+plotHeatmap(input=vst_anno,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+            geneset = "all",
+            title = "Heatmap of all present genes (variance stabilized counts [log2] )",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
+
+plotHeatmap(input=removedbatch_anno_log2,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+            geneset = "all",
+            title = "Heatmap of all present genes (batch-removed counts [log2])",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
+
+```
+
+### means of conditions
+```{r, echo=TRUE, fig.height=10, fig.width=12}
+plotHeatmap(input=vst_mean,
+            smp_table = mean_sample_table,
+            plot_anno = mean_plot_annotation,
+            geneset = "all",
+            title = "Heatmap of all present genes (variance stabilized counts [log2] )",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
+
+plotHeatmap(input=removedbatch_mean_log2,
+            smp_table = mean_sample_table,
+            plot_anno = mean_plot_annotation,
+            geneset = "all",
+            title = "Heatmap of all present genes (batch-removed counts [log2])",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
+
+```
+
+## Sample-to-Sample correlation & distance {.tabset .tabset-fade}
+
+```{r common batch input for corr and dist}
+cd_input_batch<-removedbatch_anno_log2[,!colnames(removedbatch_anno_log2)%in%c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")]
+
+```
+
+
+### Correlation
+```{r, fig.height=10, fig.width=12}
+# Correlation based on variance-stabilized counts & batch-corrected counts
+
+corr_function(sampleCor = cd_input_batch,
+              title="Sample Correlation based on batch-corrected counts",
+      
+              gene_anno=gene_annotation,
+              plot_anno=plot_annotation,
+              gene_type="protein_coding",
+              mean=F)
+
+corr_function(sampleCor = cd_input_batch,
+              title="Sample Correlation based on batch-corrected counts",
+       
+              gene_anno=gene_annotation,
+              plot_anno=plot_annotation,
+              gene_type="all",
+              mean=F)
+
+corr_function(sampleCor = cd_input_batch,
+              title="Sample Correlation based on batch-corrected counts",
+   
+              gene_anno=gene_annotation,
+              plot_anno=mean_plot_annotation,
+              gene_type="all",
+              mean=T)
+
+```
+
+
+### Distance
+```{r, fig.height=10, fig.width=12}
+# Sample Distances based on batch-corrected counts
+
+dist_function(sampleDist = cd_input_batch,
+         
+              gene_anno=gene_annotation,
+              plot_anno=plot_annotation,
+              title="Sample distances based on batch-corrected counts per sample",
+              gene_type="all",
+              mean=F)
+
+dist_function(sampleDist = cd_input_batch,
+   
+              gene_anno=gene_annotation,
+              plot_anno=mean_plot_annotation,
+              title="Sample distances based on batch-corrected counts per sample",
+              gene_type="all",
+              mean=T)
+```
+
+
+## Expression of selected genes across conditions
+
+Plot the expression of selected genes across conditions.
+
+```{r}
+plotSingleGene(data=removedbatch_anno, 
+                symbol="WDR18", 
+                 condition="condition",
+               anno_colour=ann_colors$condition,
+               shape= "donor")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
 
 ## SVA: Unknown batch effects
 
@@ -859,40 +1417,33 @@ removedbatch_dds_vst <- limmaBatchEffectRemoval(input=dds_vst,
                                                 batchfactor_2 = NULL)
 
 plotPCA(pca_input = removedbatch_dds_vst,
-         ntop="all",
-         xPC=1,
-         yPC=2,
-         color="condition",
-         anno_colour = ann_colors$condition,
-         point_size=3,
-         title="PCA of batch-corrected counts")
+        ntop="all",
+        xPC=1,
+        yPC=2,
+        color="condition",
+        anno_colour = ann_colors$condition,
+        point_size=3,
+        title="PCA of batch-corrected counts",
+        gene_anno=gene_annotation,
+        gene_type="all")
+
+
 ```
-
-## Batch-corrected table
-
-For later plotting of Heatmaps, it may be useful to have a dataframe of the batch-corrected values as log2-transformed (removedbatch_anno_log2) as well as as normal counts (removedbatch_anno).
-
-```{r}
-removedbatch_anno_log2<-removedbatch_dds_vst
-removedbatch_anno_log2<-merge(removedbatch_anno_log2,norm_anno[,c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")],by="row.names")
-rownames(removedbatch_anno_log2)<-removedbatch_anno_log2$Row.names
-removedbatch_anno_log2$Row.names<-NULL
-removedbatch_anno<-removedbatch_dds_vst
-removedbatch_anno<-2^removedbatch_anno
-removedbatch_anno<-merge(removedbatch_anno,norm_anno[,c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")],by="row.names")
-rownames(removedbatch_anno)<-removedbatch_anno$Row.names
-removedbatch_anno$Row.names<-NULL
-```
-
 
 You can also use the batch-corrected table as input for all heatmaps and as input for the top varying genes as displayed in the following section:
 
 #### Heatmap of all genes
 ```{r}
-plotHeatmap(input=removedbatch_anno_log2,geneset = "all",
+plotHeatmap(input=removedbatch_anno_log2,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            gene_type = "all",
+            geneset = "all",
             title = "Heatmap of all present genes",
             show_rownames = FALSE,
             cluster_cols = TRUE)
+
 ```
 
 ####  Hierarchical Clustering of most variable genes
@@ -902,38 +1453,51 @@ rv = genefilter::rowVars(removedbatch_anno_log2[,!colnames(removedbatch_anno_log
 q75 = quantile(rowVars(removedbatch_anno_log2[,!colnames(removedbatch_anno_log2)%in%c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")]), .75)
 q75_names = names(which(rv > q75))
 # clustered Columns & Rows
-plotHeatmap(input=removedbatch_anno_log2,geneset = q75_names,
-                title = "Heatmap of all most variable genes",
-                show_rownames = FALSE,
-                cluster_cols = TRUE)
+plotHeatmap(input=removedbatch_anno_log2,
+            geneset = q75_names,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            gene_type = "all",
+            title = "Heatmap of all most variable genes",
+            show_rownames = FALSE,
+            cluster_cols = TRUE)
 ```
 
-#### Sample-to-Sample correlation & distance 
+
+## Sample-to-Sample correlation & distance {.tabset .tabset-fade}
+
+```{r batch input for corr. and dist.}
+cd_batch_log2<-removedbatch_anno_log2[,!colnames(removedbatch_anno_log2)%in%c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")]
+
+```
+
+
+#### Sample-to-Sample correlation 
 ```{r}
-sampleCor <- as.matrix(cor(removedbatch_anno_log2[,!colnames(removedbatch_anno_log2)%in%c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")], use="all.obs", method="pearson"))
-rownames(sampleCor)<- sample_table$ID
-colnames(sampleCor)<- sample_table$ID
-pheatmap(sampleCor,
-         main="Sample Correlation based on variance-stabilized counts",
-         annotation_row = plot_annotation,
-         annotation_col = plot_annotation,
-         annotation_colors = ann_colors,
-         cluster_rows = F,
-         cluster_cols = F,
-         fontsize = 8)
+corr_function(sampleCor = cd_batch_log2,
+               title="Sample Correlation based on variance-stabilized counts",
+               gene_anno=gene_annotation,
+               plot_anno=plot_annotation,
+               gene_type="all",
+               cluster_rows = F,
+               cluster_cols = F,
+               mean=F)
 
-sampleDist <- as.matrix(dist(t(removedbatch_anno_log2[,!colnames(removedbatch_anno_log2)%in%c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")])))
-rownames(sampleDist)<- sample_table$ID
-colnames(sampleDist)<- sample_table$ID
-pheatmap(sampleDist,
-         clustering_distance_rows = dist(t(assay(dds_vst))),
-         clustering_distance_cols = dist(t(assay(dds_vst))), 
-         main="Sample distances based on variance-stabilized counts per sample",
-         annotation_row = plot_annotation, 
-         annotation_col = plot_annotation,
-         annotation_colors = ann_colors,
-         fontsize = 8)
+```
 
+### Sample-to-sample Distance
+```{r}
+dist_function(sampleDist = cd_batch_log2,
+              gene_anno=gene_annotation,
+              plot_anno=plot_annotation,
+              title="Sample distances based on variance-stabilized counts per sample",
+              gene_type="all",
+              mean=F)
+```
+
+###Heatmap of all variable and co-expressed genes
+```{r}
 q75_vst = removedbatch_anno_log2[,!colnames(removedbatch_anno_log2)%in%c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")][rowVars(removedbatch_anno_log2[,!colnames(removedbatch_anno_log2)%in%c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")]) > quantile(rowVars(removedbatch_anno_log2[,!colnames(removedbatch_anno_log2)%in%c("GENEID","SYMBOL","GENETYPE","DESCRIPTION","CHR")]), .75),]
 rcor <- rcorr(t(q75_vst),type="pearson")
 rcor$sig <- rcor$P<0.05 & rcor$r>0 # define significant positive correlations
@@ -943,11 +1507,18 @@ rcor_filt<- replace(rcor_filt, which( rcor_filt==0), NA)
 rcor_filt_melt <- melt(rcor_filt,na.rm = TRUE)
 rcor_filt_melt_cutoff <- rcor_filt_melt[rcor_filt_melt$value>0.95,]
 varR <- unique(rcor_filt_melt_cutoff$Var1)
-plotHeatmap(input=removedbatch_anno_log2,geneset = varR,
-                title = "Heatmap of all variable and co-expressed genes",
-                show_rownames = FALSE,
-                cluster_cols = FALSE)
+
+plotHeatmap(input=removedbatch_anno_log2,
+            geneset = varR,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            gene_type = "all",
+            title = "Heatmap of all variable and co-expressed genes",
+            show_rownames = FALSE,
+            cluster_cols = FALSE)
 ```
+
 
 
 ## Include batch effect variables into DESeq2 model
@@ -1053,6 +1624,10 @@ allDEgenes <- uDEG(comparisons=c("LPStreated_moDCs_vs_Immature_moDCs",
                                  "LPStreated_IL10APCs_vs_Immature_IL10APCs"))
 
 plotHeatmap(geneset = allDEgenes,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            gene_type = "all",
             title = "Heatmap of all differentially expressed genes",
             show_rownames = FALSE,
             cluster_cols = TRUE)
@@ -1067,9 +1642,13 @@ if(organism=="mouse"){
 }
 
 plotHeatmap(geneset = DE_TF,
-                title = "Heatmap of all differentially expressed transcription factors",
-                show_rownames = TRUE,
-                cluster_cols = FALSE)
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            gene_type = "all",
+            title = "Heatmap of all differentially expressed transcription factors",
+            show_rownames = TRUE,
+            cluster_cols = FALSE)
 ```
 
 ### Venn diagrams
@@ -1142,8 +1721,10 @@ DEcompare <- compareGSEA(comparisons = c("LPStreated_moDCs_vs_Immature_moDCs",
                          showMax = 20, 
                          ontology = "BP")
 
-DEcompare$GOplot
-DEcompare$KEGGplot
+DEcompare$GOplot+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+DEcompare$KEGGplot+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
 ### Likelihood ratio test
@@ -1154,28 +1735,114 @@ DESeq2 offers two kinds of hypothesis tests: the Wald test, where we use the est
 
 The likelihood ratio test can be performed by specifying test="LRT" when using the DESeq function, and providing a reduced design formula, e.g. one in which a number of terms from design(dds) are removed. The degrees of freedom for the test is obtained from the difference between the number of parameters in the two models. A simple likelihood ratio test, if the full design was ~Genotype_Age would look like:
 
-```{r}
+```{r gene annotation-1}
 dds_lrt <- DESeq(dds, 
                  test="LRT", 
                  reduced=~1)
 
 res_lrt <- results(dds_lrt)
 
+lrt_anno<- as.data.frame(assay(dds_lrt)) 
+
+# add gene annotation extracted from the gtf file 
+gene_annotation <- gene_annotation[match(rownames(lrt_anno), gene_annotation$GENEID),]
+
+# check if row names of the lrt_anno and the gene annotation match perfectly
+all(rownames(lrt_anno) == gene_annotation$GENEID)
+
+lrt_anno$GENEID<-rownames(lrt_anno) 
+lrt_anno <- merge(lrt_anno,
+                   gene_annotation,
+                   by = "GENEID") 
+
+rownames(lrt_anno)<-lrt_anno$GENEID
+lrt_anno[1:3,c(1:2, (ncol(lrt_anno)-5):ncol(lrt_anno))]
+
+
+```
+
+Creates mean for lrt_anno 
+
+```{r}
+lrt_mean<-mean_function(input=lrt_anno, 
+                         anno=sample_table,
+                         condition="condition")
+```
+
+## Heatmap of genes with likelihood ratio test p value below 0.05 
+
+
+```{r}
+
 # Plot heatmap of significantly different genes 
 lrt_significantGenes <- rownames(res_lrt[!is.na(res_lrt$padj)&
                                            res_lrt$padj < 0.05 ,])
-plotHeatmap(geneset = lrt_significantGenes,
-                title = paste("Heatmap of all LRT-significant genes: ",length(lrt_significantGenes), sep=""),
-                show_rownames = FALSE,
-                cluster_cols = TRUE)
+plotHeatmap(input=norm_anno,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            geneset = lrt_significantGenes,
+            title = paste("Heatmap of all LRT-significant genes:",  length(lrt_significantGenes),"(normalized values)", sep=""),
+            show_rownames = FALSE,
+            cluster_cols = T,
+            gene_type = "all")
+
+plotHeatmap(input=norm_mean,
+            smp_table = mean_sample_table,
+            plot_anno = mean_plot_annotation,
+       
+            geneset = lrt_significantGenes,
+            title = paste("Heatmap of all LRT-significant genes:",  length(lrt_significantGenes),"(normalized values)", sep=""),
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
+
+
+# Question to Steffi & Jonas: 
+#Do we want to plot the normalized counts for the heatmap or the LRT results(IDK in how far they vary from the normalization)
+
+plotHeatmap(input=lrt_anno,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            geneset = lrt_significantGenes,
+            title = paste("Heatmap of all LRT-significant genes:",  length(lrt_significantGenes),"(LRT-values)", sep=""),
+            show_rownames = FALSE,
+            cluster_cols = T,
+            gene_type = "all")
+
+plotHeatmap(input=lrt_mean,
+            smp_table = mean_sample_table,
+            plot_anno = mean_plot_annotation,
+     
+            geneset = lrt_significantGenes,
+            title = paste("Heatmap of all LRT-significant genes:",  length(lrt_significantGenes),"(LRT-values)", sep=""),
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
 
 # Plot heatmap of 1000 top significant genes
 lrt_1000mostvariableGenes <- head(rownames(res_lrt[order(res_lrt$padj),]),1000)
 
-plotHeatmap(geneset = lrt_1000mostvariableGenes,
-                title = "Heatmap of 1000 top significant LRT genes",
-                show_rownames = FALSE,
-                cluster_cols = TRUE)
+plotHeatmap(input=norm_anno,
+            smp_table = sample_table,
+            plot_anno = plot_annotation,
+           
+            geneset = lrt_1000mostvariableGenes,
+            title = "Heatmap of 1000 top significant LRT genes",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
+
+plotHeatmap(input=norm_mean,
+            smp_table = mean_sample_table,
+            plot_anno = mean_plot_annotation,
+
+            geneset = lrt_1000mostvariableGenes,
+            title = "Heatmap of 1000 top significant LRT genes",
+            show_rownames = FALSE,
+            cluster_cols = TRUE,
+            gene_type = "all")
 ```
 
 
@@ -1208,13 +1875,20 @@ http://varianceexplained.org/statistics/interpreting-pvalue-histogram/
 Plot heatmaps of the expression of the DE genes of the specified comparisons. The argument conditions allows to include samples from specified conditions in the heatmap.
 
 ```{r}
-plotDEHeatmap("LPStreated_moDCs_vs_Immature_moDCs",
-                factor="condition",
-                conditions="all")
-  
-  plotDEHeatmap("Immature_IL10APCs_vs_Immature_moDCs",
-                factor="condition",
-                conditions=c("Immature_moDCs","Immature_IL10APCs", "LPStreated_moDCs"))
+plotDEHeatmap(comparison = "LPStreated_moDCs_vs_Immature_moDCs",
+              factor="condition",
+              conditions="all",
+              gene_type="all",
+              show_rownames = FALSE,
+              cluster_cols = F)
+
+
+plotDEHeatmap(comparison = "Immature_IL10APCs_vs_Immature_moDCs",
+              factor="condition",
+              conditions=c("Immature_moDCs","Immature_IL10APCs", "LPStreated_moDCs"),
+              gene_type="all",
+              show_rownames = FALSE,
+              cluster_cols = F)
 ```
 
 ### Volcano Plots
@@ -1241,7 +1915,7 @@ Next, we perform gene set enrichment analyses of the DE genes of the specified c
 
 ```{r, fig.height=12, fig.width=12}
 GSEA_LPStreated_moDCs_vs_Immature_moDCs <-  GSEA(comparison="LPStreated_moDCs_vs_Immature_moDCs",
-                                 organism = organism,
+                                 organism = "human",
                                  GeneSets = c("GO",
                                               "KEGG",
                                               "Hallmark",
@@ -1251,8 +1925,9 @@ GSEA_LPStreated_moDCs_vs_Immature_moDCs <-  GSEA(comparison="LPStreated_moDCs_vs
                                  GOntology = "BP",
                                  pCorrection = "bonferroni", # choose the p-value adjustment method
                                  pvalueCutoff = 0.05, # set the unadj. or adj. p-value cutoff (depending on correction method)
-                                 qvalueCutoff = 0.05 # set the q-value cutoff (FDR corrected)
-                                 )
+                                 qvalueCutoff = 0.05, # set the q-value cutoff (FDR corrected)
+                                 showMax = 20,
+                                       font.size = 8)
 
 GSEA_LPStreated_moDCs_vs_Immature_moDCs$GOup_plot
 GSEA_LPStreated_moDCs_vs_Immature_moDCs$KEGGup_plot
@@ -1264,10 +1939,31 @@ GSEA_LPStreated_moDCs_vs_Immature_moDCs$ImmSigup_plot
 
 Please make sure that the specified terms are enriched terms of the selected results.
 
-```{r}
+```{r, fig.height=5,fig.width=7}
 plotGSEAHeatmap(GSEA_result = GSEA_LPStreated_moDCs_vs_Immature_moDCs$GOdown, 
               GeneSet="GO", 
-              term = "SRP-dependent cotranslational protein targeting to membrane")
+              term = "SRP-dependent cotranslational protein targeting to membrane",
+              show_rownames = TRUE,
+                cluster_cols = F,
+                gene_type = "all")
+
+plotGSEAHeatmap(GSEA_result = GSEA_LPStreated_moDCs_vs_Immature_moDCs$GOup, 
+                GeneSet="GO", 
+                term = "response to virus",
+                show_rownames = TRUE,
+                cluster_cols = F,
+                gene_type = "protein_coding")
+
+plotGSEAHeatmap(input=norm_mean,
+                smp_table = mean_sample_table,
+                plot_anno = mean_plot_annotation, 
+                GSEA_result = GSEA_LPStreated_moDCs_vs_Immature_moDCs$GOup, 
+                GeneSet="GO", 
+                term = "response to virus",
+                show_rownames = TRUE,
+                cluster_cols = F,
+                gene_type = "all")
+
 ```
 
 # Export of the results

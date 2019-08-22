@@ -4,7 +4,9 @@
 \alias{plotGSEAHeatmap}
 \title{Function to plot a heatmap of genes responsible for gene set enrichment}
 \usage{
-plotGSEAHeatmap(GSEA_result, GeneSet, term, regulation)
+plotGSEAHeatmap(input = norm_anno, smp_table = sample_table,
+  plot_anno = plot_annotation, GSEA_result, GeneSet, term, regulation,
+  show_rownames = TRUE, cluster_cols = F, gene_type = "all")
 }
 \description{
 Function to plot a heatmap of genes responsible for gene set enrichment

@@ -213,12 +213,14 @@ plotPCA <- function(pca_input = dds_vst,
 #' @param ntop number of genes to plot, sorted by variance
 #' @export
 #'
-plotLoadings <- function(PC, ntop){
+plotLoadings <- function(input=dds_vst_df, #or removedbatch_dds_vst
+                         PC, 
+                         ntop){
   if(ntop=="all"){
-    pca <- prcomp(t(assay(dds_vst)))
+    pca <- prcomp(t(input)) 
   }else{
-    select <- order(rowVars(assay(dds_vst)), decreasing=TRUE)[c(1:ntop)]
-    pca <- prcomp(t(assay(dds_vst)[select,]))
+    select <- order(rowVars(input), decreasing=TRUE)[c(1:ntop)]
+    pca <- prcomp(t(input[select,]))
   }
   
   Loadings <- pca$rotation[,PC]
@@ -226,7 +228,7 @@ plotLoadings <- function(PC, ntop){
   Loadings <- names(Loadings[c(1:20,(length(Loadings)-19):length(Loadings))])
   
   heatmap <- norm_anno[norm_anno$GENEID %in% Loadings,]
-  rownames(heatmap) <- paste(heatmap$GENEID,": ",heatmap$SYMBOL,sep="")
+  rownames(heatmap) <- paste(heatmap$GENEID,": ",heatmap$SYMBOL,sep="")  
   heatmap <- heatmap[,colnames(heatmap) %in% sample_table$ID]
   heatmap_scale <- as.matrix(t(scale(t(heatmap))))
   
@@ -237,7 +239,7 @@ plotLoadings <- function(PC, ntop){
            show_colnames = TRUE,
            annotation_col = plot_annotation,
            annotation_colors = ann_colors,
-           breaks = scaleColors(heatmap_scale, 2)[["breaks"]],
+           breaks = scaleColors(heatmap_scale, 2)[["breaks"]], 
            color = scaleColors(heatmap_scale, 2)[["color"]],
            cluster_cols = T,
            fontsize=6)

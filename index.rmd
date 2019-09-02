@@ -1059,9 +1059,12 @@ plot3D_pca(pca3d_input=dds_vst,
 
 ### PCA loadings
 ```{r}
-plotLoadings(PC="PC1", ntop="all")
-plotLoadings(PC="PC2", ntop="all")
-plotLoadings(PC="PC3", ntop="all")
+#without batch correction
+dds_vst_df<-as.data.frame(assay(dds_vst)) #Deniz
+
+plotLoadings(input=dds_vst_df,PC="PC1", ntop="all")
+plotLoadings(input=dds_vst_df,PC="PC2", ntop="all")
+plotLoadings(input=dds_vst_df,PC="PC3", ntop="all")
 ```
 
 ## Gene-to-Gene correlation analysis over all samples
@@ -1321,6 +1324,16 @@ dist_function(sampleDist = cd_input_batch,
               title="Sample distances based on batch-corrected counts per sample",
               gene_type="all",
               mean=T)
+```
+
+
+## Plot PCA
+### PCA loadings
+```{r}
+#Deniz: with batch correction
+plotLoadings(input = removedbatch_dds_vst,PC="PC1", ntop="all")
+plotLoadings(input = removedbatch_dds_vst,PC="PC2", ntop="all")
+plotLoadings(input = removedbatch_dds_vst,PC="PC3", ntop="all")
 ```
 
 

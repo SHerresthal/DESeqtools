@@ -26,7 +26,13 @@ mean_function<- function(input=norm_anno,
     #print(i)
     tmp <- input[,colnames(input) %in%
                    anno$ID[anno[,colnames(anno)==condition]==i]]
-    df[,i]<- rowMeans(tmp)
+    if(class(tmp)=="numeric"){
+      tmp<-as.data.frame(tmp)
+      colnames(tmp)<-i
+      df[,i]<-tmp
+    }else{
+      df[,i]<- rowMeans(tmp)
+    }
   }
   
   df$GENEID <- row.names(df)

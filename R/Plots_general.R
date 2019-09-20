@@ -51,7 +51,7 @@ plotVenn <- function(comparisons,
 plotRatios <- function(comp1, comp2){
   U <- NULL
   c <- c(comp1,comp2)
-  U <- uDEG(c)
+  U <- uDEG(comparisons = c, keyType = "Ensembl")
   Ratio <- NULL
   for(i in 1:length(c)){
     tmp <- DEresults[names(DEresults) %in% c]

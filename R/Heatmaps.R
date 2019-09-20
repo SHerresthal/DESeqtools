@@ -7,38 +7,43 @@
 #' @param title The title of the plot
 #' @param keyType Annotation of the genes in geneset. Either "Ensembl" or "Symbol"
 #' @param show_rownames Shall the gene names be shown in the heatmap? Default is FALSE.
-#' @param cluster_cols Shall the colums be clusteres? Default is FALSE
+#' @param cluster_cols Shall the colums be clustered? Default is FALSE
+#' @param column_annotation column annotation of the heatmap
 #' @return Returns a heatmap
 #' @export
 
-plotHeatmap <- function(input = norm_anno,
-                        geneset = "all",
-                        title="",
-                        keyType = "Ensembl",
-                        show_rownames = FALSE,
-                        cluster_cols = FALSE){
-  if(geneset[1] !="all"){
-    if(keyType == "Ensembl"){
-      input <- input[input$GENEID %in% geneset,]
-    } else if(keyType == "Symbol"){
-      input <- input[input$SYMBOL %in% geneset,]
-    } else{
+plotHeatmap <- function (input = norm_anno,
+                         geneset = "all",
+                         title = "",
+                         keyType = "Ensembl",
+                         show_rownames = FALSE,
+                         cluster_cols = FALSE,
+                         column_annotation = plot_annotation,
+                         sample_annotation = sample_table)
+{
+  if (geneset[1] != "all") {
+    if (keyType == "Ensembl") {
+      input <- input[input$GENEID %in% geneset, ]
+    }
+    else if (keyType == "Symbol") {
+      input <- input[input$SYMBOL %in% geneset, ]
+    }
+    else {
       print("Wrong keyType. Choose Ensembl or Symbol!")
     }
   }
-
-  rownames(input) <- paste(input$GENEID, ":", input$SYMBOL, sep="")
-  input <- input[,colnames(input) %in% sample_table$ID]
+  rownames(input) <- paste(input$GENEID, ":", input$SYMBOL,
+                           sep = "")
+  input <- input[, colnames(input) %in% sample_annotation$ID]
   input_scale <- t(scale(t(input)))
-  input_scale <- input_scale[,order(sample_table[[plot_order]], decreasing = FALSE)]
-
-  pheatmap(input_scale,
-           main=title,
-           show_rownames=show_rownames,
-           show_colnames=TRUE,
+  input_scale <- input_scale[, order(sample_annotation[[plot_order]],
+                                     decreasing = FALSE)]
+  pheatmap(input_scale, main = title,
+           show_rownames = show_rownames,
+           show_colnames = TRUE,
            cluster_cols = cluster_cols,
            fontsize = 7,
-           annotation_col = plot_annotation,
+           annotation_col = column_annotation,
            annotation_colors = ann_colors,
            breaks = scaleColors(data = input_scale, maxvalue = 2)[["breaks"]],
            color = scaleColors(data = input_scale, maxvalue = 2)[["color"]])
@@ -51,19 +56,25 @@ plotHeatmap <- function(input = norm_anno,
 #' This function provides a wrapper for the \link[pheatmap:pheatmap]{pheatmap}.
 #' It can plot a subset of genes from a certain gene set based on the GO, KEGG or HALLMARK database.
 #'
+#'#############
+#' @param input dataset to be plotted, default is norm_anno
 #' @param cat Category of the geneset. Either KEGG, GO or HALLMARK
 #' @param term Term / ID of the geneset. Either a GO term, a KEGG pathway or a set of Hallmark genes
 #' @param organism either "mouse" or "human"
 #' @param show_rownames Shall the gene names be shown in the heatmap? Default is FALSE.
 #' @param cluster_cols Shall the colums be clustered? Default is TRUE
+#' @param column_annotation. column annotation of the heatmap
 #' @return Returns a heatmap
 #' @export
 
-plotGeneSetHeatmap <- function(cat,
+plotGeneSetHeatmap <- function(input. = norm_anno,
+                               sample_annotation. = sample_table,
+                               cat,
                                term,
                                organism,
                                show_rownames =TRUE,
-                               cluster_cols = FALSE){
+                               cluster_cols = FALSE,
+                               column_annotation. =  plot_annotation){
   if(organism == "mouse"){
     GO <- GO_mm
     KEGG <- KEGG_mm
@@ -91,11 +102,14 @@ plotGeneSetHeatmap <- function(cat,
                       uniqueRows=T)[,2]
     }
   }
-  plotHeatmap(geneset = genes,
+  plotHeatmap(input = input.,
+              sample_annotation = sample_annotation.,
+              geneset = genes,
               keyType = "Symbol",
               title = paste("Heatmap of present genes annotated to: ",term, sep=""),
               show_rownames = show_rownames,
-              cluster_cols = cluster_cols)
+              cluster_cols = cluster_cols,
+              column_annotation = column_annotation.)
 }
 
 #' Function to plot a heatmap of genes responsible for gene set enrichment

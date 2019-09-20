@@ -25,3 +25,43 @@ See https://sherresthal.github.io/DESeqtools for the example workflow. It contai
 8. Differential expression analysis
 9. Export of the results
 10. Save image and session info
+
+
+## Changes in v002
+
+* GSEA function: bugfix
+
+* highestGenes: 
+    - Data argument flexible
+    - fill of boxplots according to gene type
+    - plot_title as argument
+
+* plotSingleGene: 
+    - Bug fix in shape option
+
+* plotHeatmap
+    - column annotation now flexible 
+    - sample table now flexible
+    
+* plotGeneSetHeatmap
+    - column annotation now flexible
+
+* plotPCA
+    - sample table accessible
+    
+* plotLoadings
+    - made input accessible
+    
+* DEAnalysis
+    - made input dds object accessible
+
+* GSEA
+    - made DEresults accessible
+    - bugfix in canonical pathway enrichment
+
+* added dotplotGSEA function
+
+* uDEG
+    - added functionality to plot uDEGs on Symbol level
+    
+

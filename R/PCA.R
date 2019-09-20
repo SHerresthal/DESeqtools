@@ -2,6 +2,7 @@
 #'
 #'
 #' @param pca_input input dataset, default: dds_vst
+#' @param pca_sample_table sample table with meta annotation that should be used
 #' @param ntop number of highest variable genes used for PCA
 #' @param xPC Number of principal component on the x axis
 #' @param yPC Number of principal component on the y axis
@@ -17,6 +18,7 @@
 
 
 plotPCA <- function(pca_input = dds_vst,
+                    pca_sample_table = sample_table,
                     ntop=500,
                     xPC=1,
                     yPC=2,
@@ -50,8 +52,8 @@ plotPCA <- function(pca_input = dds_vst,
   # Define data for plotting
   pcaData <- data.frame(xPC=pca$x[,xPC],
                         yPC=pca$x[,yPC],
-                        color = sample_table[[color]],
-                        name= as.character(sample_table$ID),
+                        color = pca_sample_table[[color]],
+                        name= as.character(pca_sample_table$ID),
                         stringsAsFactors = F)
 
   #plot PCA
@@ -60,7 +62,7 @@ plotPCA <- function(pca_input = dds_vst,
       pca_plot <- ggplot(pcaData, aes(x = xPC, y = yPC, colour=color)) +
         geom_point(size =point_size)
     }else{
-      pcaData$shape = sample_table[[shape]]
+      pcaData$shape = pca_sample_table[[shape]]
       pca_plot <- ggplot(pcaData, aes(x = xPC, y = yPC, colour=color, shape=shape)) +
         geom_point(size =point_size) +
         scale_shape_discrete(name=shape)
@@ -78,7 +80,7 @@ plotPCA <- function(pca_input = dds_vst,
         geom_point(size =point_size) +
         scale_color_gradientn(colours = bluered(100),name=color)
     }else{
-      pcaData$shape = sample_table[[shape]]
+      pcaData$shape = pca_sample_table[[shape]]
       pca_plot <- ggplot(pcaData, aes(x = xPC, y = yPC, colour=color, shape=shape)) +
         geom_point(size =point_size) +
         scale_color_gradientn(colours = bluered(100),name=color)+
@@ -88,7 +90,7 @@ plotPCA <- function(pca_input = dds_vst,
 
   # adds a label to the plot. To label only specific points, put them in the arument label_subset
   if (!is.null(label) == TRUE){
-    pcaData$label <- sample_table[[label]]
+    pcaData$label <- pca_sample_table[[label]]
     if(!is.null(label_subset) == TRUE){
       pcaData_labeled <- pcaData[pcaData$label %in% label_subset,]
     } else {
@@ -112,24 +114,26 @@ plotPCA <- function(pca_input = dds_vst,
 #' Function to plot heatmaps of PC loadings
 #'
 #' @param PC principal component of which the loadings should be plotted
+#' @param pca_input data to calculate the PCA on (usually the variance stabilized counts)
+#' @param heatmap_input data to show in heatmap (usually norm_anno)
 #' @param ntop number of genes to plot, sorted by variance
 #' @export
 #'
-plotLoadings <- function(PC, ntop){
+plotLoadings <- function(pca_input = dds_vst, heatmap_input = norm_anno, sample_annotation = sample_table, PC, ntop){
   if(ntop=="all"){
-    pca <- prcomp(t(assay(dds_vst)))
+    pca <- prcomp(t(assay(pca_input)))
   }else{
-    select <- order(rowVars(assay(dds_vst)), decreasing=TRUE)[c(1:ntop)]
-    pca <- prcomp(t(assay(dds_vst)[select,]))
+    select <- order(rowVars(assay(pca_input)), decreasing=TRUE)[c(1:ntop)]
+    pca <- prcomp(t(assay(pca_input)[select,]))
   }
 
   Loadings <- pca$rotation[,PC]
   Loadings <- Loadings[order(Loadings, decreasing = T)]
   Loadings <- names(Loadings[c(1:20,(length(Loadings)-19):length(Loadings))])
 
-  heatmap <- norm_anno[norm_anno$GENEID %in% Loadings,]
+  heatmap <- heatmap_input[heatmap_input$GENEID %in% Loadings,]
   rownames(heatmap) <- paste(heatmap$GENEID,": ",heatmap$SYMBOL,sep="")
-  heatmap <- heatmap[,colnames(heatmap) %in% sample_table$ID]
+  heatmap <- heatmap[,colnames(heatmap) %in% sample_annotation$ID]
   heatmap_scale <- as.matrix(t(scale(t(heatmap))))
 
   # Heatmap

@@ -9,7 +9,8 @@ setClass(Class = "DESeq2_analysis_object",
 #'
 #' Wrapper Function to perform DESeq2 differential testing
 #' @export
-DEAnalysis <- function(condition,
+DEAnalysis <- function(input = dds,
+                       condition,
                        alpha = 0.05,
                        lfcThreshold = 0,
                        sigFC = 2,
@@ -31,7 +32,7 @@ DEAnalysis <- function(condition,
     DE_object <- new(Class = "DESeq2_analysis_object")
     # IHW
     if (multiple_testing=="IHW") {
-      res_deseq_lfc <- results(dds,
+      res_deseq_lfc <- results(input,
                                contrast = c(condition,
                                             paste(comparison_table$comparison[i]),
                                             paste(comparison_table$control[i])),
@@ -41,7 +42,7 @@ DEAnalysis <- function(condition,
                                altHypothesis = "greaterAbs")
       # Independent Filtering
     }else {
-      res_deseq_lfc <- results(dds,
+      res_deseq_lfc <- results(input,
                                contrast = c(condition,
                                             paste(comparison_table$comparison[i]),
                                             paste(comparison_table$control[i])),
@@ -52,7 +53,7 @@ DEAnalysis <- function(condition,
                                pAdjustMethod= multiple_testing)
     }
     if(shrinkage == TRUE){
-      res_deseq_lfc <- lfcShrink(dds,
+      res_deseq_lfc <- lfcShrink(input,
                                  contrast = c(condition,
                                               paste(comparison_table$comparison[i]),
                                               paste(comparison_table$control[i])),
@@ -134,12 +135,17 @@ DEAnalysis <- function(condition,
 #'
 #'  @export
 
-uDEG <- function(comparisons){
+uDEG <- function(input = DEresults, keyType = "Ensembl", comparisons){
   uDEGs <- NULL
-  tmp <- DEresults[names(DEresults) %in% comparisons]
+  tmp <- input[names(input) %in% comparisons]
   for(i in 1:length(comparisons)){
     DEGs <- as.data.frame(tmp[[i]]@results[tmp[[i]]@results$regulation %in% c("up","down"),])
+    if(!keyType %in% c("Ensembl", "Symbol")){stop("keyType should be one of Ensembl or Symbol")}
+    if(keyType == "Ensembl"){
     uDEGs <- unique(c(uDEGs, DEGs$GENEID))
+    } else if (keyType == "Symbol"){
+      uDEGs <- unique(c(uDEGs, DEGs$SYMBOL))
+    }
   }
   uDEGs
 }

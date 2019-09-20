@@ -3,7 +3,11 @@
 
 GSEA <-  function(comparison,
                   organism,
-                  GeneSets =c("GO","KEGG","Hallmark","cannonicalPathways","Motifs","ImmunoSignatures"),
+
+                  
+                  DE_results = DEresults,
+                  GeneSets =c("GO","KEGG","DO","Hallmark","canonicalPathways","Motifs","ImmunoSignatures"),
+
                   GOntology = "BP",
                   pCorrection = "bonferroni", # choose the p-value adjustment method
                   pvalueCutoff = 0.05, # set the unadj. or adj. p-value cutoff (depending on correction method)
@@ -18,14 +22,15 @@ GSEA <-  function(comparison,
   } else if(organism == "human"){
     OrgDb = org.Hs.eg.db
   } else {print("Wrong Organism. Select mouse or human.")}
-  
-  res <- DEresults[[comparison]]
+
+  res <- DE_results[[comparison]]
   DE_up <- as.data.frame(res@DE_genes$up_regulated_Genes)$SYMBOL
   entrez_up <- bitr(DE_up, fromType = "SYMBOL", toType="ENTREZID", OrgDb=OrgDb)$ENTREZID
   DE_down <- as.data.frame(res@DE_genes$down_regulated_Genes)$SYMBOL
-  entrez_down <- bitr(DE_down, fromType = "SYMBOL", toType="ENTREZID", OrgDb=OrgDb)$ENTREZID  
-  
-  # GO enrichment
+  entrez_down <- bitr(DE_down, fromType = "SYMBOL", toType="ENTREZID", OrgDb=OrgDb)$ENTREZID
+
+  # GO enrichment ###############################
+
   if("GO" %in% GeneSets){
     print("Performing GO enrichment")
     if(length(entrez_up)<20){
@@ -77,8 +82,10 @@ GSEA <-  function(comparison,
       }
     }
   }
-  
-  # KEGG enrichment
+
+
+  # KEGG enrichment ##########################################
+
   if("KEGG" %in% GeneSets){
     print("Performing KEGG enrichment")
     
@@ -130,27 +137,71 @@ GSEA <-  function(comparison,
       }
     }
   }
-  
-  if("Hallmark" %in% GeneSets |"cannonicalPathways" %in% GeneSets| "ImmunoSignatures" %in% GeneSets | "Motifs" %in% GeneSets){
-    genes_up_hsa <- getLDS(attributes = c("mgi_symbol"), 
-                           filters = "mgi_symbol", 
-                           values = DE_up, 
-                           mart = useMart("ensembl", dataset = "mmusculus_gene_ensembl"), 
-                           attributesL = c("hgnc_symbol"), 
-                           martL = useMart("ensembl", dataset = "hsapiens_gene_ensembl"), 
-                           uniqueRows=T)[,2]
-    entrez_up_hsa <- bitr(genes_up_hsa, fromType = "SYMBOL", toType="ENTREZID", OrgDb=org.Hs.eg.db)$ENTREZID
-    genes_down_hsa <- getLDS(attributes = c("mgi_symbol"), 
-                             filters = "mgi_symbol", 
-                             values = DE_down, 
-                             mart = useMart("ensembl", dataset = "mmusculus_gene_ensembl"), 
-                             attributesL = c("hgnc_symbol"), 
-                             martL = useMart("ensembl", dataset = "hsapiens_gene_ensembl"), 
-                             uniqueRows=T)[,2]
-    entrez_down_hsa <- bitr(genes_down_hsa, fromType = "SYMBOL", toType="ENTREZID", OrgDb=org.Hs.eg.db)$ENTREZID
+
+  if("Hallmark" %in% GeneSets |
+     "DO" %in% GeneSets |
+     "canonicalPathways" %in% GeneSets|
+     "ImmunoSignatures" %in% GeneSets |
+     "Motifs" %in% GeneSets){
+    if(organism == "mouse"){
+
+    entrez_up_hsa <- as.character(getLDS(attributes = c("mgi_symbol"),
+                                         filters = "mgi_symbol",
+                                         values = DE_up,
+                                         mart = useMart("ensembl", dataset = "mmusculus_gene_ensembl"),
+                                         attributesL = c("entrezgene_id"),
+                                         martL = useMart("ensembl", dataset = "hsapiens_gene_ensembl"),
+                                         uniqueRows=T)[,2])
+    entrez_down_hsa <- getLDS(attributes = c("mgi_symbol"),
+                              filters = "mgi_symbol",
+                              values = DE_down,
+                              mart = useMart("ensembl", dataset = "mmusculus_gene_ensembl"),
+                              attributesL = c("entrezgene_id"),
+                              martL = useMart("ensembl", dataset = "hsapiens_gene_ensembl"),
+                              uniqueRows=T)[,2]
+
+    } else if(organism == "human"){
+      entrez_up_hsa <- entrez_up
+      entrez_down_hsa <- entrez_down
+    }
+    }
+
+  # DO enrichment ########################################
+  if("DO" %in% GeneSets){
+    print("Performing Disease Ontology enrichment")
+
+    if(length(entrez_up)<20){
+      print("Too few upregulated genes for DO enrichment (<20)")
+      results$DOup <- "Too few upregulated genes for DO enrichment (<20)"
+    }else{
+      results$DOup <- as.data.frame(enrichDO(gene = entrez_up_hsa,
+                                             universe = universe_mouse2human_Entrez,
+                                             pAdjustMethod = pCorrection,
+                                             pvalueCutoff  = pvalueCutoff,
+                                             qvalueCutoff = qvalueCutoff,
+                                             minGSSize     = 5,
+                                             maxGSSize     = 500,
+                                             readable=TRUE))
+      if(nrow(results$DOup)>0){results$DOup$Enrichment <- paste("DO enrichment for genes upregulated in ",comparison,sep="")}
+    }
+    if(length(entrez_down)<20){
+      print("Too few downregulated genes for DO enrichment (<20)")
+      results$DOdown <- "Too few downregulated genes for DO enrichment (<20)"
+    } else{
+      results$DOdown <- as.data.frame(enrichDO(gene = entrez_down_hsa,
+                                               universe = universe_mouse2human_Entrez,
+                                               pAdjustMethod = pCorrection,
+                                               pvalueCutoff  = pvalueCutoff,
+                                               qvalueCutoff = qvalueCutoff,
+                                               minGSSize     = 5,
+                                               maxGSSize     = 500,
+                                               readable=TRUE))
+      if(nrow(results$DOdown)>0){results$DOdown$Enrichment <- paste("DO enrichment for genes downregulated in ",comparison,sep="")}
+    }
   }
-  
-  # Hallmark enrichment
+
+  # Hallmark enrichment ################################
+
   if("Hallmark" %in% GeneSets){
     print("Performing Hallmark enrichment")
     if(length(entrez_up_hsa)<20){
@@ -198,54 +249,37 @@ GSEA <-  function(comparison,
       }
     }
   }
-  
-  # Cannonical Pathway enrichment
-  if("cannonicalPathways" %in% GeneSets){
-    print("Performing Cannonical Pathway (C2) enrichment")
+
+  # Canonical Pathway enrichment #############################
+  if("canonicalPathways" %in% GeneSets){
+    print("Performing Canonical Pathway (C2) enrichment")
     if(length(entrez_up_hsa)<20){
-      print("Too few upregulated genes for Cannonical Pathway enrichment (<20)")
-      results$cannonicalPathways_up <- "Too few upregulated genes for Motif enrichment (<20)"
+      print("Too few upregulated genes for Canonical Pathway enrichment (<20)")
+      results$canonicalPathwaysup <- "Too few upregulated genes for Motif enrichment (<20)"
     }else{
-      cannonicalPathways_up <- enricher(entrez_up_hsa,
-                                        TERM2GENE=cannonicalPathway_genes,
-                                        universe = universe_mouse2human_Entrez,  
-                                        pAdjustMethod = pCorrection,
-                                        pvalueCutoff  = pvalueCutoff,
-                                        qvalueCutoff = qvalueCutoff)
-      
-      results$cannonicalPathwaysup <- as.data.frame(cannonicalPathways_up)
-      if(nrow(results$cannonicalPathwaysup)<1){
-        results$cannonicalPathwaysup_plot <- "No cannonical pathway enrichment for upregulated genes"
-      }else{
-        results$cannonicalPathwaysup_plot <- clusterProfiler::dotplot(cannonicalPathways_up,
-                                                                      showCategory = showMax,
-                                                                      font.size= font.size,
-                                                                      title = paste("Cannonical pathway  enrichment for genes upregulated in: ",comparison,sep="")
-        )
-      }
+      results$canonicalPathwaysup <- as.data.frame(enricher(entrez_up_hsa,
+                                                             TERM2GENE=canonicalPathway_genes,
+                                                             universe = universe_mouse2human_Entrez,
+                                                             pAdjustMethod = pCorrection,
+                                                             pvalueCutoff  = pvalueCutoff,
+                                                             qvalueCutoff = qvalueCutoff))
+      if(nrow(results$canonicalPathwaysup)>0){results$canonicalPathwaysup$Enrichment <- paste("Canonical pathway enrichment for genes upregulated in ",comparison,sep="")}
+
     }
     
     if(length(entrez_down_hsa)<20){
-      print("Too few downregulated genes for cannonical pathway  enrichment (<20)")
-      results$cannonicalPathways_down <- "Too few downregulated genes for cannonical pathway enrichment (<20)"
+
+      print("Too few downregulated genes for canonical pathway  enrichment (<20)")
+      results$canonicalPathwaysdown <- "Too few downregulated genes for canonical pathway enrichment (<20)"
     }else{
-      cannonicalPathways_down <- enricher(entrez_down_hsa,
-                                          TERM2GENE=cannonicalPathway_genes,
-                                          universe = universe_mouse2human_Entrez,  
-                                          pAdjustMethod = pCorrection,
-                                          pvalueCutoff  = pvalueCutoff,
-                                          qvalueCutoff = qvalueCutoff)
-      
-      results$cannonicalPathwaysdown <- as.data.frame(cannonicalPathways_down)
-      if(nrow(results$cannonicalPathwaysdown)<1){
-        results$cannonicalPathwaysdown_plot <-"No cannonical pathway enrichment for downregulated genes"
-      }else{
-        results$cannonicalPathwaysdown_plot <- clusterProfiler::dotplot(cannonicalPathways_down,
-                                                                        showCategory = showMax,
-                                                                        font.size= font.size,
-                                                                        title = paste("Cannonical pathway enrichment for genes downregulated in: ",comparison,sep="")
-        )
-      }
+      results$canonicalPathwaysdown <- as.data.frame(enricher(entrez_down_hsa,
+                                                               TERM2GENE=canonicalPathway_genes,
+                                                               universe = universe_mouse2human_Entrez,
+                                                               pAdjustMethod = pCorrection,
+                                                               pvalueCutoff  = pvalueCutoff,
+                                                               qvalueCutoff = qvalueCutoff))
+      if(nrow(results$canonicalPathwaysdown)>0){results$canonicalPathwaysdown$Enrichment <- paste("Canonical pathway enrichment for genes downregulated in ",comparison,sep="")}
+
     }
   }
   
@@ -301,7 +335,7 @@ GSEA <-  function(comparison,
   
   # Immunosignatures enrichment
   if("ImmunoSignatures" %in% GeneSets){
-    print("Performing immunesignature enrichment")
+    print("Performing Immunosignature enrichment")
     if(length(entrez_up_hsa)<20){
       print("Too few upregulated genes for Immunosignature enrichment (<20)")
       results$ImmSig_up <- "Too few upregulated genes for Immunosignature enrichment (<20)"
@@ -353,6 +387,7 @@ GSEA <-  function(comparison,
 #' GO & KEGG enrichment across comparisons
 #' @export
 compareGSEA <- function(comparisons,
+                        DE_results = DEresults,
                         organism,
                         GeneSets =c("GO","KEGG"),
                         ontology= "BP",
@@ -369,7 +404,7 @@ compareGSEA <- function(comparisons,
 
   ENTREZlist <-  list()
   for(i in 1:length(comparisons)){
-    res <- DEresults[names(DEresults) %in% comparisons]
+    res <- DE_results[names(DE_results) %in% comparisons]
     DE_up <- as.data.frame(res[[i]]@DE_genes$up_regulated_Genes)$SYMBOL
     entrez_up <- bitr(DE_up, fromType = "SYMBOL", toType="ENTREZID", OrgDb=OrgDb)$ENTREZID
     DE_down <- as.data.frame(res[[i]]@DE_genes$down_regulated_Genes)$SYMBOL
@@ -417,4 +452,46 @@ compareGSEA <- function(comparisons,
   }
   list
 }
+
+#' GSEA dotplot
+#' @export
+dotplotGSEA <- function(x,
+                        show=25,
+                        font.size=10,
+                        title.size=10,
+                        title.width=100,
+                        order="count"){
+  if(nrow(x)<1){
+    print("No enrichment found.")
+  }else{
+    x <- if(nrow(x)>show){x[c(1:show),]}else{x}
+    if(order=="padj"){
+      x <- x[order(x$Count,decreasing=FALSE),]
+      x$GeneRatio <- factor(x$GeneRatio, levels = unique(x$GeneRatio))
+      x <- x[order(x$p.adjust,decreasing=TRUE),]
+      x$Description <- factor(x$Description, levels = unique(x$Description))
+    }
+    if(order=="count"){
+      x <- x[order(x$Count,decreasing=FALSE),]
+      x$Description <- factor(x$Description, levels = unique(x$Description))
+      x$GeneRatio <- factor(x$GeneRatio, levels = unique(x$GeneRatio))
+    }
+    ggplot(x, aes(x = GeneRatio, y = Description, color = p.adjust)) +
+      geom_point(aes(size = Count)) +
+      scale_colour_gradientn(colours=c('red',
+                                       'orange',
+                                       'darkblue',
+                                       'darkblue'),
+                             limits=c(0,1),
+                             values   = c(0,0.05,0.2,0.5,1),
+                             breaks   = c(0.05,0.2,1),
+                             labels = format(c(0.05,0.2,1))) +
+      ylab(NULL) +
+      ggtitle(paste(strwrap(unique(x$Enrichment), width=title.width), collapse = "\n"))+
+      theme_bw() +
+      theme(text = element_text(size=font.size),
+            plot.title = element_text(size=title.size))
+  }
+}
+
 

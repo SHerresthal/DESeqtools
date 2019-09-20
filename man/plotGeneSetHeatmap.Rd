@@ -4,8 +4,9 @@
 \alias{plotGeneSetHeatmap}
 \title{Heatmap of genes of specified GO, KEGG or HALLMARK gene sets}
 \usage{
-plotGeneSetHeatmap(cat, term, organism, show_rownames = TRUE,
-  cluster_cols = FALSE)
+plotGeneSetHeatmap(input = norm_anno, smp_table = sample_table,
+  plot_anno = plot_annotation, cat, term, organism,
+  show_rownames = TRUE, cluster_cols = FALSE, gene_type = "all")
 }
 \arguments{
 \item{cat}{Category of the geneset. Either KEGG, GO or HALLMARK}
@@ -17,6 +18,8 @@ plotGeneSetHeatmap(cat, term, organism, show_rownames = TRUE,
 \item{show_rownames}{Shall the gene names be shown in the heatmap? Default is FALSE.}
 
 \item{cluster_cols}{Shall the colums be clustered? Default is TRUE}
+
+\item{gene_type}{A character from gene_annotation$gene_type defineing the genes set to use. "all" is set by default and will use all genes.}
 }
 \value{
 Returns a heatmap

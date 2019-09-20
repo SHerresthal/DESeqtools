@@ -5,7 +5,8 @@
 \title{DESeq2 differential testing}
 \usage{
 DEAnalysis(condition, alpha = 0.05, lfcThreshold = 0, sigFC = 2,
-  multiple_testing = "IHW", shrinkage = TRUE, shrinkType = "normal")
+  multiple_testing = "IHW", independentFiltering = TRUE,
+  shrinkage = TRUE, shrinkType = "normal")
 }
 \description{
 Wrapper Function to perform DESeq2 differential testing

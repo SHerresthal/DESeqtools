@@ -4,10 +4,16 @@
 \alias{plotHeatmap}
 \title{Plot a heatmap}
 \usage{
-plotHeatmap(geneset = "all", title = "", keyType = "Ensembl",
-  show_rownames = FALSE, cluster_cols = FALSE)
+plotHeatmap(input = norm_anno, smp_table = sample_table, geneset,
+  title = "", keyType = "Ensembl", show_rownames = FALSE,
+  cluster_cols = FALSE, gene_type = "all",
+  plot_anno = plot_annotation)
 }
 \arguments{
+\item{input}{a dataframe for the read counts, norm_anno as the default}
+
+\item{smp_table}{A sample table for processing the heatmap, by default smp_table}
+
 \item{geneset}{A character vector containing the genes to plot or "all" for plotting all genes of the dataset (hardcoded to norm_anno). By default, all genes are plotted.}
 
 \item{title}{The title of the plot}
@@ -16,7 +22,9 @@ plotHeatmap(geneset = "all", title = "", keyType = "Ensembl",
 
 \item{show_rownames}{Shall the gene names be shown in the heatmap? Default is FALSE.}
 
-\item{cluster_cols}{Shall the colums be clusteres? Default is FALSE}
+\item{cluster_cols}{Shall "test" the colums be clusteres? Default is FALSE}
+
+\item{gene_type}{A character from gene_annotation$gene_type defineing the genes set to use. "all" is set by default and will use all genes.}
 }
 \value{
 Returns a heatmap

@@ -1,3 +1,105 @@
+#' Function to plot a 3D PCA
+#'
+#' @export
+plot3D_pca<-function(pca3d_input=dds_vst,
+                     sample_table=sample_table,
+                     gene_anno=gene_annotation,
+                     gene_type="all",
+                     title="3D Scatter plot_PCA",
+                     xPC=1,
+                     yPC=2,
+                     zPC=3,
+                     ntop=500,
+                     anno_colour=col_condition,
+                     point_size=3){
+  
+  samplePCA_3d<-as.matrix(assay(pca3d_input))
+  
+  if(gene_type=="all"){
+    if(ntop=="all"){
+      pca <- prcomp(t(samplePCA_3d)) 
+    }else{
+      # select the ntop genes by variance
+      select <- order(rowVars(samplePCA_3d), decreasing=TRUE)[c(1:ntop)]
+      pca <- prcomp(t(samplePCA_3d[select,]))
+    }
+    
+    #calculate explained variance per PC
+    explVar <- pca$sdev^2/sum(pca$sdev^2)
+    # transform variance to percent
+    percentVar <- round(100 * explVar[c(xPC,yPC,zPC)], digits=1)
+    
+    # Define data for plotting  
+    pcaData_3D <- data.frame(xPC=pca$x[,xPC], 
+                             yPC=pca$x[,yPC],
+                             zPC=pca$x[,zPC],
+                             condition = sample_table$condition,
+                             ID= as.character(sample_table$ID),
+                             stringsAsFactors = F)
+    
+    
+    pcaData_3D$condition <- as.factor(pcaData_3D$condition)
+    
+    
+    p <- plot_ly(pcaData_3D, x = ~xPC, y = ~yPC, z = ~zPC, color = ~condition, colors = anno_colour,
+                 text = ~paste('ID:', ID), marker = list(size = point_size)) %>% #, '<br>Genotype_Stim:', Genotype_Stim, '<br>Preparation:', Preparation
+      layout(title=title,
+             scene = list(xaxis = list(title = paste0("PC ",xPC,": ", percentVar[1], "% variance")),
+                          yaxis = list(title = paste0("PC ",yPC,": ", percentVar[2], "% variance")),
+                          zaxis = list(title = paste0("PC ",zPC,": ", percentVar[3], "% variance"))))
+    
+  }else{
+    #filtering
+    samplePCA_3d<-as.data.frame(samplePCA_3d)
+    samplePCA_3d$GENEID <- row.names(samplePCA_3d)
+    gene_anno <- gene_anno[match(rownames(samplePCA_3d), gene_anno$GENEID),]
+    
+    samplePCA_3d <- merge(samplePCA_3d,
+                          gene_anno,
+                          by = "GENEID")
+    rownames(samplePCA_3d) <- samplePCA_3d$GENEID
+    samplePCA_3d<-samplePCA_3d[samplePCA_3d[["GENETYPE"]]==gene_type,]
+    samplePCA_3d <- samplePCA_3d[,colnames(samplePCA_3d) %in% sample_table[["ID"]]]
+    samplePCA_3d<-as.matrix(samplePCA_3d)
+    ####
+    if(ntop=="all"){
+      pca <- prcomp(t(samplePCA_3d)) 
+    }else{
+      # select the ntop genes by variance
+      select <- order(rowVars(samplePCA_3d), decreasing=TRUE)[c(1:ntop)]
+      pca <- prcomp(t(samplePCA_3d[select,]))
+    }
+    
+    #calculate explained variance per PC
+    explVar <- pca$sdev^2/sum(pca$sdev^2)
+    # transform variance to percent
+    percentVar <- round(100 * explVar[c(xPC,yPC,zPC)], digits=1)
+    
+    # Define data for plotting  
+    pcaData_3D <- data.frame(xPC=pca$x[,xPC], 
+                             yPC=pca$x[,yPC],
+                             zPC=pca$x[,zPC],
+                             condition = sample_table$condition,
+                             ID= as.character(sample_table$ID),
+                             stringsAsFactors = F)
+    
+    
+    pcaData_3D$condition <- as.factor(pcaData_3D$condition)
+    
+    p <- plot_ly(pcaData_3D, x = ~xPC, y = ~yPC, z = ~zPC, color = ~condition, colors = anno_colour,
+                 text = ~paste('ID:', ID),marker = list(size = point_size)) %>% #, '<br>Genotype_Stim:', Genotype_Stim, '<br>Preparation:', Preparation
+      layout(title=title,
+             scene = list(xaxis = list(title = paste0("PC ",xPC,": ", percentVar[1], "% variance")),
+                          yaxis = list(title = paste0("PC ",yPC,": ", percentVar[2], "% variance")),
+                          zaxis = list(title = paste0("PC ",zPC,": ", percentVar[3], "% variance"))))
+    
+  }
+  p
+}
+
+
+
+
 #' Function to plot a PCA
 #'
 #'
@@ -148,5 +250,6 @@ plotLoadings <- function(pca_input = dds_vst, heatmap_input = norm_anno, sample_
            cluster_cols = T,
            fontsize=6)
 }
+
 
 

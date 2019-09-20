@@ -112,3 +112,4 @@ highestGenes <- function(numGenes = 10, data = norm_anno, plot_title = NULL)
           plot.title = element_text(size = 18, face = "bold")) +
     guides(fill = guide_legend(override.aes = list(alpha = 1)))
 }
+

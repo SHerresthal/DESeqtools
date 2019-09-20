@@ -3,9 +3,6 @@
 \docType{data}
 \name{canonicalPathway_genes}
 \alias{canonicalPathway_genes}
-\alias{TFlist_hs}
-\alias{TFlist_mm}
-\alias{example_sampletable}
 \title{Canonical pathway genes}
 \format{A data frame
   \describe{
@@ -14,25 +11,11 @@
   }}
 \usage{
 canonicalPathway_genes
-
-TFlist_hs
-
-TFlist_mm
-
-example_sampletable
 }
 \description{
 List with KEGG canonical pathways from the MiSigDB gene set.
 }
 \references{
 This datasets corresponds to c2.cp.v6.2.entrez.gmt \url{http://software.broadinstitute.org/gsea/msigdb/collections.jsp}
-
-\url{}
-
-\url{}
-
-\url{}
 }
 \keyword{datasets}
-\keyword{genes}
-\keyword{pathway}

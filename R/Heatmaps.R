@@ -6,23 +6,24 @@
 #' @param input a dataframe for the read counts, norm_anno as the default
 #' @param geneset A character vector containing the genes to plot or "all" for plotting all genes of the dataset (hardcoded to norm_anno). By default, all genes are plotted.
 #' @param title The title of the plot
-#' @param smp_table A sample table for processing the heatmap, by default smp_table
-#' @param gene_type A character from gene_annotation$gene_type defineing the genes set to use. "all" is set by default and will use all genes.
+#' @param sample_annotation A sample table for processing the heatmap, by default sample_table
 #' @param keyType Annotation of the genes in geneset. Either "Ensembl" or "Symbol"
 #' @param show_rownames Shall the gene names be shown in the heatmap? Default is FALSE.
 #' @param cluster_cols Shall the colums be clustered? Default is FALSE
-#' @param column_annotation column annotation of the heatmap
+#' @param column_annotation column annotation of the heatmap, default is plot_annotation
 #' @return Returns a heatmap
 #' @export
 
-plotHeatmap <- function (input = norm_anno,
+plotHeatmap <- function(input = norm_anno,
                          geneset = "all",
                          title = "",
                          keyType = "Ensembl",
                          show_rownames = FALSE,
                          cluster_cols = FALSE,
-                         column_annotation = plot_annotation,
-                         sample_annotation = sample_table)
+                         column_annotation = c("donor", "treatment", "condition"),
+                         sample_annotation = sample_table,
+                         plot_mean = FALSE,
+                         plot_mean_column = "condition")
 {
   if (geneset[1] != "all") {
     if (keyType == "Ensembl") {
@@ -34,59 +35,38 @@ plotHeatmap <- function (input = norm_anno,
     else {
       print("Wrong keyType. Choose Ensembl or Symbol!")
     }
-    rownames(input) <- paste(input$GENEID, ":", input$SYMBOL, sep="")
-    input <- input[,colnames(input) %in% smp_table[["ID"]]]
-    
+  }
+  rownames(input) <- paste(input$GENEID, ":", input$SYMBOL, sep = "") # collapse GeneID and SYMBOL for rownames. Changes to the gene annotation should be done here
+
+  input <- input[, colnames(input) %in% sample_annotation$ID]
+
+  if(plot_mean == FALSE ){
+
     input_scale <- t(scale(t(input)))
-    input_scale <- input_scale[,order(smp_table[[plot_order]], decreasing = FALSE)]
-    
-    pheatmap(input_scale,
-             main=title,
-             show_rownames=show_rownames,
-             show_colnames=TRUE,
-             cluster_cols = cluster_cols, 
-             fontsize = 7,
-             annotation_col = plot_anno,
-             annotation_colors = ann_colors,
-             breaks = scaleColors(data = input_scale, maxvalue = 2)[["breaks"]], 
-             color = scaleColors(data = input_scale, maxvalue = 2)[["color"]])
-  }else{
-    if(geneset[1] =="all"){
-      input <- input
-    }else{#
-      if(keyType == "Ensembl"){
-        input <- input[input$GENEID %in% geneset,]
-      } else if(keyType == "Symbol"){
-        input <- input[input$SYMBOL %in% geneset,]
-      } else{
-        print("Wrong keyType. Choose Ensembl or Symbol!")
-      }
+    input_scale <- input_scale[, order(sample_annotation[[plot_order]], decreasing = FALSE)]
+    column_annotation <- sample_table[,c(column_annotation), drop = F]
+
+  } else {
+
+      if(!plot_mean_column %in% names(sample_table)){
+      stop("Error: plot_mean_cloumn needs to be a column name in your column_annotation")
     }
-    rownames(input) <- paste(input$GENEID, ":", input$SYMBOL, sep="")
-    input<-input[input[["GENETYPE"]]==gene_type,]
-    input <- input[,colnames(input) %in% smp_table[["ID"]]]
-    
-    input_scale <- t(scale(t(input)))
-    input_scale <- input_scale[,order(smp_table[[plot_order]], decreasing = FALSE)]
-    
-    pheatmap(input_scale,
-             main=title,
-             show_rownames=show_rownames,
-             show_colnames=TRUE,
-             cluster_cols = cluster_cols, 
-             fontsize = 7,
-             annotation_col = plot_anno,
-             annotation_colors = ann_colors,
-             breaks = scaleColors(data = input_scale, maxvalue = 2)[["breaks"]], 
-             color = scaleColors(data = input_scale, maxvalue = 2)[["color"]]) 
+    input$gene <- rownames(input)
+    tmp <- gather(input, key = "sample", value = "expression", -gene) %>%
+      merge(., sample_table[,c("ID", plot_mean_column)], by.x = "sample", by.y = "ID") %>%
+      group_by_(plot_mean_column, "gene")
+    tmp$expression <- as.numeric(tmp$expression)
+    tmp <- summarise(tmp, mean = mean(expression))
+    tmp <- as.data.frame(spread_(tmp, key = plot_mean_column, value = "mean"))
+    rownames(tmp) <- tmp$gene
+    tmp$gene <- NULL
+
+    input_scale <- t(scale(t(tmp)))
+    column_annotation <- data.frame(row.names = unique(sample_table[,plot_mean_column]),
+                                    plot_mean_column = unique(sample_table[,plot_mean_column]))
+    names(column_annotation)[1] <- plot_mean_column
   }
 
-  rownames(input) <- paste(input$GENEID, ":", input$SYMBOL,
-                           sep = "")
-  input <- input[, colnames(input) %in% sample_annotation$ID]
-  input_scale <- t(scale(t(input)))
-  input_scale <- input_scale[, order(sample_annotation[[plot_order]],
-                                     decreasing = FALSE)]
   pheatmap(input_scale, main = title,
            show_rownames = show_rownames,
            show_colnames = TRUE,
@@ -97,7 +77,6 @@ plotHeatmap <- function (input = norm_anno,
            breaks = scaleColors(data = input_scale, maxvalue = 2)[["breaks"]],
            color = scaleColors(data = input_scale, maxvalue = 2)[["color"]])
 }
-
 
 
 #' Heatmap of genes of specified GO, KEGG or HALLMARK gene sets
@@ -133,7 +112,7 @@ plotGeneSetHeatmap <- function(input. = norm_anno,
     GO <- GO_hs
     KEGG <- KEGG_hs
   } else (stop("Wrong organism specified!"))
-  
+
   xterm <- paste("^", term, "$", sep="")
   if(cat=="GO"){
     genes <- unique(GO[grep(xterm,GO$TERM),"SYMBOL"])
@@ -144,12 +123,12 @@ plotGeneSetHeatmap <- function(input. = norm_anno,
   if(cat=="HALLMARK"){
     genes <- unique(hallmark_genes[grep(xterm,hallmark_genes$ont),"gene"])
     if(organism == "mouse"){
-      genes <- getLDS(attributes = c("entrezgene_id"), 
-                      filters = "entrezgene_id", 
-                      values = genes, 
-                      mart = useMart("ensembl", dataset = "hsapiens_gene_ensembl"), 
-                      attributesL = c("mgi_symbol"), 
-                      martL = useMart("ensembl", dataset = "mmusculus_gene_ensembl"), 
+      genes <- getLDS(attributes = c("entrezgene_id"),
+                      filters = "entrezgene_id",
+                      values = genes,
+                      mart = useMart("ensembl", dataset = "hsapiens_gene_ensembl"),
+                      attributesL = c("mgi_symbol"),
+                      martL = useMart("ensembl", dataset = "mmusculus_gene_ensembl"),
                       uniqueRows=T)[,2]
     }
   }
@@ -168,40 +147,40 @@ plotGeneSetHeatmap <- function(input. = norm_anno,
 #' Function to plot a heatmap of genes responsible for gene set enrichment
 #' @export
 plotGSEAHeatmap<-function(input=norm_anno,
-                          smp_table = sample_table,
-                          plot_anno = plot_annotation, 
+                          sample_annotation = sample_table,
+                          column_annotation = plot_annotation,
                           GSEA_result,
-                          GeneSet, 
+                          GeneSet,
                           term,
                           regulation,
                           show_rownames = TRUE,
                           cluster_cols = F,
                           gene_type="all"){
-  
-  xterm <- paste("^", term, "$", sep="") 
+
+  xterm <- paste("^", term, "$", sep="")
   tmp <- GSEA_result[grep(xterm,GSEA_result$Description),]
   gene.list <- unique(unlist(strsplit(tmp$geneID, split = "/")))
-  
+
   if(GeneSet == "KEGG"){
-    gene.list <- bitr(gene.list, 
-                      fromType = "ENTREZID", 
-                      toType="SYMBOL", 
+    gene.list <- bitr(gene.list,
+                      fromType = "ENTREZID",
+                      toType="SYMBOL",
                       OrgDb="org.Mm.eg.db")[,2]
   }
-  
+
   if(GeneSet == "HALLMARK" | GeneSet == "ImmunoSignatures" | GeneSet == "Motifs"){
-    gene.list <- getLDS(attributes = c("hgnc_symbol"), 
-                        filters = "hgnc_symbol", 
-                        values = gene.list, 
-                        mart = human, 
-                        attributesL = c("mgi_symbol"), 
-                        martL = mouse, 
+    gene.list <- getLDS(attributes = c("hgnc_symbol"),
+                        filters = "hgnc_symbol",
+                        values = gene.list,
+                        mart = human,
+                        attributesL = c("mgi_symbol"),
+                        martL = mouse,
                         uniqueRows=T)[,2]
   }
-  
+
   plotHeatmap(input=input,
-              smp_table = smp_table,
-              plot_anno = plot_anno,
+              sample_annotation = sample_table,
+              column_annotation = plot_annotation,
               geneset = gene.list,
               keyType = "Symbol",
               title = paste("Heatmap of genes responsible for enrichment of term:",
@@ -214,8 +193,8 @@ plotGSEAHeatmap<-function(input=norm_anno,
 #' Function to plot heatmaps of DE genes based on pheatmap
 #' @export
 plotDEHeatmap <- function(input=norm_anno,
-                          smp_table=sample_table,
-                          plot_anno=plot_annotation,
+                          sample_annotation=sample_table,
+                          column_annotation=plot_annotation,
                           comparison,
                           factor,
                           gene_anno=gene_annotation,
@@ -223,20 +202,20 @@ plotDEHeatmap <- function(input=norm_anno,
                           gene_type="all",
                           show_rownames = FALSE,
                           cluster_cols = FALSE){
-  
+
   geneset <- DEresults[[comparison]]@results[DEresults[[comparison]]@results$regulation %in% c("up","down"),"GENEID"]
-  
+
   input <- input[input$GENEID %in% geneset,]
-  
+
   if(conditions[1] == "all"){
-    input <- input[,colnames(input) %in% smp_table$ID]
+    input <- input[,colnames(input) %in% sample_annotation$ID]
     input_scale <- t(scale(t(input)))
   } else {
-    input <- input[,colnames(input) %in% smp_table[as.vector(smp_table[[factor]]) %in% conditions,]$ID,]
+    input <- input[,colnames(input) %in% sample_annotation[as.vector(sample_annotation[[factor]]) %in% conditions,]$ID,]
     input_scale <- t(scale(t(input)))
-    smp_table<-subset(smp_table,smp_table[[factor]] %in% conditions)
+    sample_annotation<-subset(sample_annotation,sample_annotation[[factor]] %in% conditions)
   }
-  
+
   input_scale<-as.data.frame(input_scale)
   input_scale$GENEID <- rownames(input_scale)
   gene_anno <- gene_anno[match(rownames(input_scale), gene_anno$GENEID),]
@@ -244,19 +223,19 @@ plotDEHeatmap <- function(input=norm_anno,
                         gene_anno,
                         by = "GENEID")
   rownames(input_scale) <- input_scale$GENEID
-  
+
   title=paste("Heatmap of significant DE genes in: ",comparison,sep="")
-  
-  
-  
-  plotHeatmap(input=input_scale, 
-              smp_table=smp_table,
+
+
+
+  plotHeatmap(input=input_scale,
+              sample_annotation=sample_table,
               geneset = geneset,
               title = title,
               keyType = "Ensembl",#Deniz: cannot be "Symbol", no matter what!!!!!!
               show_rownames = show_rownames,
               cluster_cols = cluster_cols,
-              plot_anno=plot_anno,
+              column_annotation=plot_annotation,
               gene_type=gene_type)
 }
- 
+

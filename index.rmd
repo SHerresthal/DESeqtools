@@ -9,6 +9,12 @@ output:
     number_sections: true	   
 ---
 
+packages to include:
+```{r}
+library(ggpubr)
+```
+
+
 # Introduction
 
 This is a general template on how you can analyze your RNA-Seq data using the DESeq2-package and the DESeqtools-package, which provides additional plots and some convenient wrappers. 
@@ -86,17 +92,14 @@ First, you need to make sure that you have the devtools package installed. Then,
 ```{r, eval = F}
 #install.packages("devtools")
 # library("devtools")
-#install_github("deniznazs/DESeqtools", ref = "package")
+#install_github("sherresthal/DESeqtools", ref = "package")
 ```
 
 To load the package, run: 
 
 ```{r}
 library(devtools)
-
-devtools::load_all(path = "E:/Deniz/Git/usr/bin/DESeqtools_Deniz")
-devtools::document()
-
+devtools::load_all()
 ```
 
 Since the gene ontology files are too large to put them on github, you have to load them in two chunks and combine them. 
@@ -162,12 +165,13 @@ organism = "human" # choose "mouse" or "human"
 
 If you want to run the script on your own data, you can specify the directory and save it unrer "dir". Then, the output directories are automatically created. 
 ```{r, warning=F, eval = F}
-dir <- "E:/Deniz/Git/usr/bin/DESeqtools_Deniz/inst/extdata"
+dir <- "/path/to/your/project"
 
 # creating output directories (if not already existing):
 dir.create(file.path(dir, "Analysis", "Tables"), recursive = T)
 dir.create(file.path(dir, "Analysis", "Plots"), recursive = T)
 ```
+
 For demonstation purposes, we take data which is installed with the package and therefore use another file directory that points to the preinstalled files. 
 ```{r}
 dir <- system.file("extdata", package = "DESeqtools")
@@ -480,12 +484,10 @@ rownames(unnorm_anno) <- unnorm_anno$GENEID
 unnorm_anno[1:3,c(1:2, (ncol(unnorm_anno)-5):ncol(unnorm_anno))]
 ```
 
-##Boxplot of normalized and unnorm gene expression
+## Boxplot of normalized and unnormalized gene expression
 
 ```{r boxplot of unnormalized vs normalized}
-#Boxplot and comparison btw unnorm_anno vs norm_anno
-
-######first, create a sample table just taking the sample ID and condition for boxplot
+# first, create a sample table just taking the sample ID and condition for boxplot
 box_sample_table<-sample_table[,c("ID","condition")]#depending on choice, change the condition to smt else
 
 #ordering for the legend labels
@@ -542,9 +544,9 @@ p2<-ggplot(box_unnorm_table, mapping = aes(x=sample , y= expression+1,fill=condi
   ggtitle("Unnormalized gene expression analysis") 
 
 #combining two boxplots into one plot with common legend
-library(ggpubr)
 ggarrange(p2, p1, ncol=2, common.legend = TRUE, legend="bottom")
 
+# remove unneccessary objects
 
 ```
 
@@ -612,62 +614,6 @@ ann_colors <- setColours(factorcolours = c("Set1","Set2"))
 ```
 
 
-## Means for plotting
-
-```{r create means}
-
-norm_mean<-mean_function(input=norm_anno, 
-                         anno=sample_table,
-                         condition="condition")#Deniz: depending on your desired condition, can change it and put any other column name from sample_table
-
-vst_mean<-mean_function(input=vst_anno,
-                        anno = sample_table,
-                        condition = "condition")#Deniz: depending on your desired condition, can change it and put any other column name from sample_table
-
-library(useful)
-corner(vst_mean)
-
-```
-
-Mean sample table
-
-```{r create mean sample table}
-# function to create mean_sample_table depending on your condition called mean_sample_definition
-
-mean_sample_table<- sample_table[!duplicated(sample_table$condition),]#mean sample table is generated firsly from sample_table
-rownames(mean_sample_table)<-mean_sample_table$condition
-mean_sample_table<-subset(mean_sample_table,select=-c(ID,donor))#ID and donor columns are excluded
-
-mean_sample_table<-mean_sample_definition(input=mean_sample_table,
-                                          anno=sample_table,
-                                          condition="condition")
-
-mean_sample_table
-
-corner(mean_sample_table)
-```
-
-
-Specify mean sample annotation for plotting
-
-```{r}
-# choose columns from sampletable for heatmap annotation
-#consistency for writing in capital or small letters!
-mean_plot_annotation <- mean_sample_table[,c("condition","pseudoaligned_reads"), drop = F]
-
-rownames(mean_plot_annotation) <- mean_sample_table$condition
-
-# plot_order
-
-mean_sample_table$condition<- factor(mean_sample_table$condition,
-                                    levels=c("Immature_moDCs","LPStreated_moDCs","Immature_IL10APCs","LPStreated_IL10APCs"))
-
-plot_order<-"condition"
-
-```
-
-
-
 ## Frequencies of gene types
 ```{r plot genetypes}
 TypeCounts <- as.data.frame(table(norm_anno$GENETYPE))
@@ -706,102 +652,51 @@ Plot a heatmap of all hierarchically clustered present genes.
 
 I case your machine has only 8 gb of ram, plotting a heatmap of all present genes might exceed your memory capacities and give the error: "Error: cannot allocate vector of size XX Gb". In that case, you can either reduce the genes to present based on a higher expression cutoff or continue with the heatmap of variable genes.
 
-### clustered Columns & Rows-all samples
+### clustered Columns & Rows
 ```{r, echo=TRUE, fig.height=10, fig.width=12}
-
 plotHeatmap(input=norm_anno,
-            smp_table = sample_table,
-            plot_anno = plot_annotation,
-           
+            sample_annotation = sample_table,
+            column_annotation = plot_annotation,
             geneset = "all",
             title = "Heatmap of all present genes (normalized counts)",
             show_rownames = FALSE,
-            cluster_cols = TRUE,
-            gene_type = "all")
+            cluster_cols = TRUE)
 
 plotHeatmap(input=vst_anno,
-            smp_table = sample_table,
-            plot_anno = plot_annotation,
-           
+            sample_annotation = sample_table,
+            column_annotation = plot_annotation,
             geneset = "all",
             title = "Heatmap of all present genes (log2 normalized counts)",
             show_rownames = FALSE,
-            cluster_cols = TRUE,
-            gene_type = "all")
+            cluster_cols = TRUE)
 ```
 
-### clustered Columns & Rows-means of conditions
+Sometimhes it can be helpful to plot the mean values of conditions in a heatmap. For this, specify the option *plot_mean = TRUE* and put the column you would like to mean over with *plot_mean_column = "condition"* (as an example)
+
+### Heatmap on mean expression values per condition
+
 ```{r, echo=TRUE, fig.height=10, fig.width=12}
-plotHeatmap(input=norm_mean,
-            smp_table = mean_sample_table,
-          
-            plot_anno = mean_plot_annotation,
+plotHeatmap(input=norm_anno,
+            sample_annotation = sample_table,
+            column_annotation = plot_annotation,
             geneset = "all",
             title = "Heatmap of all present genes (normalized counts)",
             show_rownames = FALSE,
-            cluster_cols = TRUE,
-            gene_type = "all")
-
-plotHeatmap(input=vst_mean,
-            smp_table = mean_sample_table,
-    
-            plot_anno = mean_plot_annotation,
-            geneset = "all",
-            title = "Heatmap of all present genes (log2 normalized counts)",
-            show_rownames = FALSE,
-            cluster_cols = TRUE,
-            gene_type = "all")
-
-```
+            cluster_cols = TRUE, 
+            plot_mean = TRUE, 
+            plot_mean_column = "condition")
 
 
-
-### clustered Rows-all samples
-```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
-plotHeatmap(input=norm_anno ,
-            smp_table = sample_table,
-            plot_anno = plot_annotation,
-           
+# you can also specify a different column of your sample table: 
+plotHeatmap(input=norm_anno,
+            sample_annotation = sample_table,
+            column_annotation = plot_annotation,
             geneset = "all",
             title = "Heatmap of all present genes (normalized counts)",
             show_rownames = FALSE,
-            cluster_cols = FALSE,
-            gene_type = "all")
-
-plotHeatmap(input=vst_anno ,
-            smp_table = sample_table,
-            plot_anno = plot_annotation,
-           
-            geneset = "all",
-            title = "Heatmap of all present genes (log2 normalized counts)",
-            show_rownames = FALSE,
-            cluster_cols = FALSE,
-            gene_type = "all")
-
-```
-
-### clustered Rows- means of conditions
-```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
-plotHeatmap(input=norm_mean,
-            smp_table = mean_sample_table,
-            plot_anno = mean_plot_annotation,
-          
-            geneset = "all",
-            title = "Heatmap of all present genes (normalized counts)",
-            show_rownames = FALSE,
-            cluster_cols = FALSE,
-            gene_type = "all")
-
-plotHeatmap(input=vst_mean,
-            smp_table = mean_sample_table,
-            plot_anno = mean_plot_annotation,
-       
-            geneset = "all",
-            title = "Heatmap of all present genes (log2 normalized counts)",
-            show_rownames = FALSE,
-            cluster_cols = FALSE,
-            gene_type = "all")
-
+            cluster_cols = TRUE, 
+            plot_mean = TRUE, 
+            plot_mean_column = "donor")
 ```
 
 
@@ -822,93 +717,37 @@ q75_names = names(which(rv > q75))
 ###  clustered Columns & Rows- all samples
 ```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
 plotHeatmap(input=norm_anno,
-            smp_table=sample_table,
-           
+            sample_annotation = sample_table,
             geneset =q75_names,
             title = "Heatmap of Top 75% most variable genes (log2 normalized counts)",
             show_rownames = FALSE,
             cluster_cols = TRUE,
-            plot_anno=plot_annotation,
-            gene_type = "all")
-
-plotHeatmap(input=vst_anno,
-            smp_table=sample_table,
-           
-            geneset =q75_names,
-            title = "Heatmap of Top 75% most variable genes (log2 normalized counts)",
-            show_rownames = FALSE,
-            cluster_cols = TRUE,
-            plot_anno=plot_annotation,
-            gene_type = "all")
-
-
+            column_annotation = c("condition", "treatment"))
 ```
 
 ###  clustered Columns & Rows-means of conditions
 ```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
-plotHeatmap(input=norm_mean,
-            smp_table=mean_sample_table,
-         
+plotHeatmap(input=norm_anno,
+            sample_annotation = sample_table,
+            plot_mean = TRUE,
+            plot_mean_column = "condition",
             geneset =q75_names,
             title = "Heatmap of Top 75% most variable genes (log2 normalized counts)",
             show_rownames = FALSE,
             cluster_cols = TRUE,
-            plot_anno=mean_plot_annotation,
-            gene_type = "all")
-
-```
-
-###  clustered Rows-all samples
-```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
-plotHeatmap(input=norm_anno, 
-            smp_table=sample_table,
-           
-            geneset = q75_names,
-            title = "Heatmap of all most variable genes",
-            show_rownames = FALSE,
-            cluster_cols = FALSE,
-            plot_anno=plot_annotation,
-            gene_type = "all")
-
-```
-
-
-###  clustered Rows-conditions
-```{r, echo=TRUE, message=FALSE, results='hide', fig.height=10, fig.width=12}
-plotHeatmap(input=vst_mean, 
-            smp_table=mean_sample_table,
-           
-            geneset = q75_names,
-            title = "Heatmap of all most variable genes",
-            show_rownames = FALSE,
-            cluster_cols = FALSE,
-            plot_anno=mean_plot_annotation,
-            gene_type="all")
-
-plotHeatmap(input=vst_mean, 
-            smp_table=mean_sample_table,
-            
-            geneset = q75_names,
-            title = "Heatmap of all most variable genes",
-            show_rownames = FALSE,
-            cluster_cols = FALSE,
-            plot_anno=mean_plot_annotation,
-            gene_type="antisense_RNA")
-
+            column_annotation = c("condition", "treatment"))
 ```
 
 ## Sample-to-Sample correlation & distance {.tabset .tabset-fade}
 
 ```{r common input for corr. and dist.}
 cd_input<-as.data.frame(assay(dds_vst))
-
 ```
 
 
 ### Correlation
 
 ```{r, fig.height=10, fig.width=12}
-
 corr_function(sampleCor = cd_input,
                title="Sample Correlation based on variance-stabilized counts",
                gene_anno=gene_annotation,
